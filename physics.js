@@ -4,6 +4,17 @@
     var ACCELERATOR = 2;
     var AABOX = 3;
 
+// jme- it depends on Class and extend... maybe more
+// - make a build version in a single file
+// - in bash/makefile
+// - microphysics.build.js
+// - microphysics.min.js
+// jme- make bench
+// - with workers and without
+// - limit by webgl or by physics ?
+// - closure advanced compilation ?
+// jme- make test
+// - bunch of demo 
     var sqrt = Math.sqrt;
     var pow = Math.pow;
     var min = Math.min;
@@ -14,11 +25,13 @@
     var clamp = function(left, right, value){
         return max(left, min(right, value));
     };
-
+// jme- all functions are public ?
+// - if not, lets mark private function somehow
+// - like _privateMethod()
     var Body = Class({
         init: function(args){
             var params = extend({
-                hardness: 1,
+                hardness: 1,    // jme- what is hardness. is that used somewhere ?
                 restitution: 1,
                 x: 0,
                 y: 0,
@@ -115,6 +128,7 @@
                 this.bodies = [];
                 this.accelerators = [];
             },
+            // TODO add a .del
             add: function(){
                 for(var i=0; i<arguments.length; i++){
                     var obj = arguments[i];
@@ -161,9 +175,11 @@
                 this.collide(delta, true);
             },
             step: function(timestep, now){
+                // jme- is that to limit extrem periods which may trigger poor output
                 if(now - this.time > 0.25){
                     this.time = now - 0.25;
                 }
+                // jme- this line is surely debug. remove it
                 var timestep = 1/360;
                 while(this.time < now){
                     this.onestep(timestep);
@@ -179,6 +195,7 @@
             start: function(time){
                 this.time = time;
             },
+            // jme- delta is even used
             accelerate: function(delta){
                 var bodies = this.bodies;
                 var accelerators = this.accelerators;
