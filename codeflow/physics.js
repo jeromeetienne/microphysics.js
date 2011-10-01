@@ -176,11 +176,12 @@
             },
             step: function(timestep, now){
                 // jme- is that to limit extrem periods which may trigger poor output
+                // make it tunable
                 if(now - this.time > 0.25){
                     this.time = now - 0.25;
                 }
                 // jme- this line is surely debug. remove it
-                var timestep = 1/360;
+                //var timestep = 1/360;
                 while(this.time < now){
                     this.onestep(timestep);
                 }
