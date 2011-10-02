@@ -58,7 +58,6 @@ THREEx.Microphysics.prototype._addCube	= function(mesh, opts)
 	var restitution	= opts.restitution	? opts.restitution	: 0.6;
 	var flipped	= 'flipped' in opts	? opts.flipped		: false;
 	var bodyClass	= flipped ? vphy.AABB : vphy.AABox;
-	console.log("cube")
 
 	mesh.geometry.computeBoundingBox();
 	mesh._vphyBody	= new bodyClass({

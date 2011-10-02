@@ -9,6 +9,8 @@ var container;
 var camera, scene, renderer, stats;
 var world;
 var microphysics;
+var deviceOrientation;
+var gravity;
 
 // ## bootstrap functions
 // initialiaze everything
@@ -31,6 +33,8 @@ function init() {
 	microphysics.start();
 	world		= microphysics.world();
 
+	deviceOrientation	= new THREEx.DeviceOrientationState();
+
 
 	var geometry	= new THREE.CubeGeometry(1400,800,800, 10, 10, 10, [], true);
 	var material	= [new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } ),new THREE.MeshNormalMaterial()];
@@ -46,7 +50,7 @@ if(true){
 	var geometry	= new THREE.CubeGeometry(200,200,200, 10, 10, 10);
 	var material	= [new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } ),new THREE.MeshNormalMaterial()];
 	var mesh	= new THREE.Mesh(geometry, material);
-	mesh.position.x	= 200;
+	mesh.position.x	= 200; 
 	mesh.position.y	= -400+100;
 	scene.addChild(mesh);
 	microphysics.addMesh(mesh, {
@@ -55,11 +59,12 @@ if(true){
 }
 
 	// gravity
-	world.add(new vphy.LinearAccelerator({
+	gravity	= new vphy.LinearAccelerator({
 		x	: 0, 
 		y	: -9.8 * 250,
 		z	: 0
-	}));
+	});
+	world.add(gravity);
 
 	for( var i = 0; i < 150; i++ ){
 		var mesh	= new THREE.Mesh(new THREE.SphereGeometry(50, 10, 5), new THREE.MeshNormalMaterial());
@@ -105,6 +110,31 @@ function animate() {
 
 // ## Render the 3D Scene
 function render() {
+
+(function(){
+	var vector	= new THREE.Vector3(0, -10 * 250, 0);
+	var angleX	= deviceOrientation.angleX();
+	var angleZ	= deviceOrientation.angleZ();
+	
+	var srcMatrix	= new THREE.Matrix4();
+	srcMatrix.setPosition(vector);
+	//angleY		= Math.PI;
+	
+	var rotMatrix	= new THREE.Matrix4();
+	rotMatrix.multiplySelf(new THREE.Matrix4().setRotationX(angleX));
+	rotMatrix.multiplySelf(new THREE.Matrix4().setRotationZ(-angleZ));
+
+	rotMatrix.multiplySelf(srcMatrix);
+	var position	= rotMatrix.getPosition();
+	
+	//position.set(0, +10*250, 0);
+	//console.log("position", JSON.stringify(position), position.length())
+	gravity.direction.x	= position.x;
+	gravity.direction.y	= position.y;
+	gravity.direction.z	= position.z;
+	//console.log("direction", gravity.direction);
+	//console.log("angleX", deviceOrientation.angleX() * 180/Math.PI);
+}());
 	
 	microphysics.update(scene);	
 
