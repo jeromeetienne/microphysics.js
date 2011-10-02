@@ -66,16 +66,16 @@ if(true){
 	});
 	world.add(gravity);
 
-	for( var i = 0; i < 150; i++ ){
-		var mesh	= new THREE.Mesh(new THREE.SphereGeometry(50, 10, 5), new THREE.MeshNormalMaterial());
+	for( var i = 0; i < 200; i++ ){
+		var mesh	= new THREE.Mesh(new THREE.SphereGeometry(70, 10, 5), new THREE.MeshNormalMaterial());
 		mesh.position.x	= 	(2*Math.random()-1) * 30;
 		mesh.position.y	= 150 + (2*Math.random()-1) * 75;
 		mesh.position.z	= 	(2*Math.random()-1) * 30;
-		
+
 		microphysics.addMesh(mesh, {
 			restitution	: 0.9
 		});
-	
+
 		scene.addChild(mesh);		
 	}
 
@@ -111,6 +111,7 @@ function animate() {
 // ## Render the 3D Scene
 function render() {
 
+// change gravity based on device orientation
 (function(){
 	var vector	= new THREE.Vector3(0, -10 * 250, 0);
 	var angleX	= deviceOrientation.angleX();
@@ -122,18 +123,14 @@ function render() {
 	
 	var rotMatrix	= new THREE.Matrix4();
 	rotMatrix.multiplySelf(new THREE.Matrix4().setRotationX(angleX));
-	rotMatrix.multiplySelf(new THREE.Matrix4().setRotationZ(-angleZ));
+	rotMatrix.multiplySelf(new THREE.Matrix4().setRotationZ(-angleZ)); 
 
 	rotMatrix.multiplySelf(srcMatrix);
 	var position	= rotMatrix.getPosition();
-	
-	//position.set(0, +10*250, 0);
-	//console.log("position", JSON.stringify(position), position.length())
+
 	gravity.direction.x	= position.x;
 	gravity.direction.y	= position.y;
 	gravity.direction.z	= position.z;
-	//console.log("direction", gravity.direction);
-	//console.log("angleX", deviceOrientation.angleX() * 180/Math.PI);
 }());
 	
 	microphysics.update(scene);	
