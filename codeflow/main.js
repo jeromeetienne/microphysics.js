@@ -48,8 +48,6 @@ $(function(){
         depth: 1,
     });
 
-    var spheres = [];
-    var boxes = [];
 
     var Box = Class({
         __init__: function(world, x, y, z, width, height, depth){
@@ -67,9 +65,9 @@ $(function(){
                 depth: depth/2,
             });
         },
-        draw: function(shader, u){
+        draw: function(shader){
             shader.draw(this.geom, framework.screen, {
-                offset: this.body.getPosition(u)
+                offset: this.body.getPosition()
             });
         },
     });
@@ -77,6 +75,10 @@ $(function(){
     var lightdir = new Vec3(0.5, -1, 0.25).normalize();
     var rlightdir = new Vec3().update(lightdir).mul(-1);
     var world = new vphy.World();
+    
+    var spheres = world.getCollection();
+    var boxes = world.getCollection();
+
     world.add(
         new vphy.AABB({
             size: {
@@ -86,34 +88,8 @@ $(function(){
             },
             restitution: 1.0,
         }),
-        new vphy.LinearAccelerator({
-            x: 0, 
-            y: -20,
-            z: 0,
-        })
-        /*
-        {
-            type: vphy.ACCELERATOR,
-            perform: function(){
-                var len = spheres.length;
-                for(var i=0; i<len-1; i++){
-                    var b1 = spheres[i];
-                    for(var j=i+1; j<len; j++){
-                        var b2 = spheres[j];
-                        var x = b1.x - b2.x;
-                        var y = b1.y - b2.y;
-                        var z = b1.z - b2.z;
-                        var l = Math.sqrt(x*x + y*y + z*z);
-                        var xn=x/l, yn=y/l, zn=z/l;
-                        var f1 = (b2.mass*3.0)/(l*l);
-                        var f2 = (b1.mass*3.0)/(l*l);
-                        b1.accelerate(-xn*f1, -yn*f1, -zn*f1);
-                        b2.accelerate(xn*f2, yn*f2, zn*f2);
-                    }
-                }
-            },
-        }
-        */
+        //new vphy.LinearAccelerator({x: 0, y: -20, z: 0}),
+        new vphy.NBodyGravity(spheres, 3)
     );
 
     for(var a=-1; a<=1; a++){
@@ -122,26 +98,9 @@ $(function(){
         }
     }
 
-    /*
-    var player = new vphy.Sphere({
-        restitution: 0.6,
-        radius: 0.15,
-        x: 0, y: 0.8, z: 0,
-    });
-    spheres.push(player);
-    world.add(player);
-    world.add(
-        {
-            type: vphy.ACCELERATOR,
-            perform: function(){
-                if(left) player.accelerate(-1, 0, 0);
-                if(right) player.accelerate(1, 0, 0);
-                if(front) player.accelerate(0, 0, -1);
-                if(back) player.accelerate(0, 0, 1);
-            },
-        },
-    );
-    */
+    var rnd = function(scale){
+        return (Math.random()-0.5)*2*scale;
+    };
 
     var spawnSphere = function(){
         var x = (Math.random()-0.5)*1;
@@ -149,9 +108,14 @@ $(function(){
         var y = 1-0.3 - Math.random()*0.5;
         var s = new vphy.Sphere({
             restitution: 0.6,
-            radius: Math.random() * 0.15 + 0.1,
+            //radius: Math.random() * 0.15 + 0.1,
+            radius: Math.random() * 0.015 + 0.01,
             x: x, y: y, z: z,
         });
+        s.events.on('contact', function(){
+            this.remove();
+        });
+        s.setVelocity(rnd(0.0005), rnd(0.0005), rnd(0.0005))
         world.add(s);
         spheres.push(s);
     }
@@ -161,7 +125,7 @@ $(function(){
 
     var scheduler = new Scheduler(function(delta, now){ 
         var timestep = 1/120;
-        var u = world.step(timestep, now);
+        world.step(timestep, now);
         view.update(delta);
 
         gl.clearColor(0.1, 0.1, 0.1, 1);
@@ -172,7 +136,7 @@ $(function(){
         for(var i=0; i<spheres.length; i++){
             var sphere = spheres[i];
             data.marble.draw(item, framework.screen, {
-                offset: sphere.getPosition(u),
+                offset: sphere.getPosition(),
                 radius: sphere.radius,
             });
         }
@@ -182,7 +146,7 @@ $(function(){
             .uniform('lightdir', rlightdir);
 
         for(var i=0; i<boxes.length; i++){
-            boxes[i].draw(data.diffuse_textured, u);
+            boxes[i].draw(data.diffuse_textured);
         }
 
         framework.cull('front');
@@ -224,18 +188,6 @@ $(function(){
                 case 32:
                     spawnSphere();
                     break;
-                case 37: left=true; break;
-                case 39: right=true; break;
-                case 38: front=true; break;
-                case 40: back=true; break;
             }
         })
-        .keyup(function(event){
-            switch(event.which){
-                case 37: left=false; break;
-                case 39: right=false; break;
-                case 38: front=false; break;
-                case 40: back=false; break;
-            }
-        });
 });

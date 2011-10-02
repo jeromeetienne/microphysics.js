@@ -8,6 +8,7 @@ var startTime	= Date.now();
 var container;
 var camera, scene, renderer, stats;
 var world;
+var microphysics;
 
 // ## bootstrap functions
 // initialiaze everything
@@ -25,19 +26,33 @@ function init() {
 	camera.position.z	= -1000;
 	// create the Scene
 	scene = new THREE.Scene();
+
+	microphysics	= new THREEx.Microphysics();
+	microphysics.start();
+	world		= microphysics.world();
+
+
+	var geometry	= new THREE.CubeGeometry(1400,800,800, 10, 10, 10, [], true);
+	var material	= [new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } ),new THREE.MeshNormalMaterial()];
+	var mesh	= new THREE.Mesh(geometry, material);
+	scene.addChild(mesh);
 	
-	world = new vphy.World();
+	microphysics.addMesh(mesh, {
+		restitution	: 1.0,
+		flipped		: true
+	});
 
-	world.start(Date.now()/1000);
-
-	world.add(new vphy.AABB({
-		size	: {
-			width	: 400*2,
-			height	: 400*2,
-			depth	: 400*2
-		},
-		restitution	: 1.0
-        }));
+if(true){
+	var geometry	= new THREE.CubeGeometry(200,200,200, 10, 10, 10);
+	var material	= [new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } ),new THREE.MeshNormalMaterial()];
+	var mesh	= new THREE.Mesh(geometry, material);
+	mesh.position.x	= 200;
+	mesh.position.y	= -400+100;
+	scene.addChild(mesh);
+	microphysics.addMesh(mesh, {
+		restitution	: 2.0
+	});
+}
 
 	// gravity
 	world.add(new vphy.LinearAccelerator({
@@ -46,21 +61,15 @@ function init() {
 		z	: 0
 	}));
 
-	for( var i = 0; i < 200; i++ ){
+	for( var i = 0; i < 150; i++ ){
 		var mesh	= new THREE.Mesh(new THREE.SphereGeometry(50, 10, 5), new THREE.MeshNormalMaterial());
 		mesh.position.x	= 	(2*Math.random()-1) * 30;
 		mesh.position.y	= 150 + (2*Math.random()-1) * 75;
 		mesh.position.z	= 	(2*Math.random()-1) * 30;
 		
-		mesh.geometry.computeBoundingBox();
-		mesh._vphyBody	= new vphy.Sphere({
-			restitution	: 0.9,
-			radius		: (mesh.geometry.boundingBox.x[1] - mesh.geometry.boundingBox.x[0])/2,
-			x		: mesh.position.x,
-			y		: mesh.position.y,
-			z		: mesh.position.z
+		microphysics.addMesh(mesh, {
+			restitution	: 0.9
 		});
-		world.add(mesh._vphyBody);
 	
 		scene.addChild(mesh);		
 	}
@@ -97,21 +106,7 @@ function animate() {
 // ## Render the 3D Scene
 function render() {
 	
-	//var timestep	= 1/120;
-	var actualTime	= world.step(1/60, Date.now()/1000);
-	
-//console.log(world, scene)
-	scene.children.forEach(function(mesh){
-		if( typeof mesh === THREE.Mesh )	return;
-		if( ! mesh._vphyBody )			return;
-
-		var body	= mesh._vphyBody;
-		var bodyPosition= body.getPosition(actualTime);
-		mesh.position.x	= bodyPosition[0];
-		mesh.position.y	= bodyPosition[1];
-		mesh.position.z	= bodyPosition[2];
-		//console.log("position", mesh.position)
-	})
+	microphysics.update(scene);	
 
 	// actually display the scene in the Dom element
 	renderer.render( scene, camera );

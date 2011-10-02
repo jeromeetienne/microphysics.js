@@ -4,6 +4,17 @@
     var ACCELERATOR = 2;
     var AABOX = 3;
 
+// jme- it depends on Class and extend... maybe more
+// - make a build version in a single file
+// - in bash/makefile
+// - microphysics.build.js
+// - microphysics.min.js
+// jme- make bench
+// - with workers and without
+// - limit by webgl or by physics ?
+// - closure advanced compilation ?
+// jme- make test
+// - bunch of demo 
     var sqrt = Math.sqrt;
     var pow = Math.pow;
     var min = Math.min;
@@ -11,86 +22,22 @@
     var pi = Math.PI;
     var tau = 2*pi;
 
-    var body_ids = 0;
-
-    var extend = function(a, b){
-        var result = {};
-        for(var name in a){
-            result[name] = a[name];
-        }
-        for(var name in b){
-            result[name] = b[name];
-        }
-        return result;
-    };
-
-    var Class = function(obj){
-        var constructor = obj.__init__ || function(){};
-
-        if(obj.__extends__){
-            var base = obj.__extends__.prototype;
-        }
-        else{
-            var base = {};
-        }
-
-        constructor.prototype = extend(base, obj);
-        return constructor;
-    };
-    
-    var Events = Class({
-        __init__: function(obj){
-            this.listeners = {};
-            this.obj = obj;
-            this.has_listeners = false;
-        },
-        on: function(name, fun){
-            this.has_listeners = true;
-            var listeners = this.listeners[name] = this.listeners[name] || [];
-            listeners.push(fun);
-            return this;
-        },
-        trigger: function(name){
-            if(!this.has_listeners) return;
-
-            var listeners = this.listeners[name];
-            if(!listeners) return;
-
-            var l = listeners.length;
-            if(!l) return;
-
-            var obj = this.obj;
-            for(var i=0; i<l; i++){
-                listeners[i].apply(obj, arguments);
-            }
-            return this;
-        },
-    });
-
     var clamp = function(left, right, value){
         return max(left, min(right, value));
     };
-
-    var Accelerator = Class({
-        type: ACCELERATOR,
-        remove: function(){
-            this.to_remove = true;
-        },
-    });
-
+// jme- all functions are public ?
+// - if not, lets mark private function somehow
+// - like _privateMethod()
     var Body = Class({
         init: function(args){
             var params = extend({
-                hardness: 1,
+                hardness: 1,    // jme- what is hardness. is that used somewhere ?
                 restitution: 1,
                 x: 0,
                 y: 0,
                 z: 0,
                 density: 1,
             }, args);
-
-            this.id = body_ids++;
-            this.events = new Events(this);
 
             this.restitution = params.restitution;
             this.hardness = params.hardness;
@@ -109,14 +56,6 @@
             this.py = this.y;
             this.pz = this.z;
         },
-        onContact: function(other){
-            this.world.onContact(this, other);
-            other.events.trigger('contact', this);
-            this.events.trigger('contact', other);
-        },
-        remove: function(){
-            this.to_remove = true;
-        },
         computeMass: function(){
             return this.density;
         },
@@ -125,8 +64,7 @@
             this.py = this.y - y;
             this.pz = this.z - z;
         },
-        getPosition: function(){
-            var u = this.world.u;
+        getPosition: function(u){
             return [
                 this.px + (this.x - this.px)*u,
                 this.py + (this.y - this.py)*u,
@@ -184,24 +122,16 @@
     });
 
     vphy = {
-        types: {
-            AABB            : AABB,
-            SPHERE          : SPHERE,
-            ACCELERATOR     : ACCELERATOR,
-            AABOX           : AABOX,
-        },
+        ACCELERATOR: ACCELERATOR,
         World: Class({
             __init__: function(){
-                this.u = 0;
                 this.bodies = [];
                 this.accelerators = [];
-                this.managed = [this.bodies, this.accelerators];
-                this.events = new Events(this);
             },
+            // TODO add a .del
             add: function(){
                 for(var i=0; i<arguments.length; i++){
                     var obj = arguments[i];
-                    obj.world = this;
                     if(obj.type == ACCELERATOR){
                         this.accelerators.push(obj);
                     }
@@ -210,9 +140,6 @@
                     }
                 }
                 return this;
-            },
-            onContact: function(body1, body2){
-                this.events.trigger('contact', body1, body2);
             },
             momentum: function(){
                 var bodies = this.bodies;
@@ -239,54 +166,36 @@
                     }
                 }
             },
-            getCollection: function(){
-                var c = [];
-                this.managed.push(c);
-                return c;
-            },
-            cleanupCollection: function(c){
-                for(var i=0; i<c.length; i++){
-                    if(c[i].to_remove){
-                        c.splice(i, 1);
-                        i--;
-                    }
-                }
-            },
-            cleanup: function(){
-                var managed = this.managed;
-                var l = managed.length;
-                for(var i=0; i<l; i++){
-                    this.cleanupCollection(managed[i]);
-                }
-            },
             onestep: function(delta){
                 this.time += delta;
                 this.accelerate();
                 this.applyAcceleration(delta);
                 this.collide(delta, false);
-                this.cleanup();
                 this.momentum();
                 this.collide(delta, true);
-                this.cleanup();
             },
             step: function(timestep, now){
+                // jme- is that to limit extrem periods which may trigger poor output
                 if(now - this.time > 0.25){
                     this.time = now - 0.25;
                 }
+                // jme- this line is surely debug. remove it
+                //var timestep = 1/360;
                 while(this.time < now){
                     this.onestep(timestep);
                 }
                 var diff = this.time - now;
                 if(diff > 0){
-                    this.u = (timestep - diff)/timestep;
+                    return (timestep - diff)/timestep;
                 }
                 else{
-                    this.u = 1.0;
+                    return 1.0;
                 }
             },
             start: function(time){
                 this.time = time;
             },
+            // jme- delta is even used
             accelerate: function(delta){
                 var bodies = this.bodies;
                 var accelerators = this.accelerators;
@@ -298,7 +207,7 @@
             },
         }),
         LinearAccelerator: Class({
-            __extends__: Accelerator,
+            type: ACCELERATOR,
             __init__: function(direction){
                 this.direction = direction;
             },
@@ -311,34 +220,6 @@
             accelerate: function(body){
                 body.accelerate(this.direction.x, this.direction.y, this.direction.z);
             }
-        }),
-        NBodyGravity: Class({
-            __extends__: Accelerator,
-            __init__: function(collection, strength){
-                this.collection = collection;
-                this.strength = strength;
-            },
-            perform: function(){
-                var collection = this.collection;
-                var len = collection.length;
-                var strength = this.strength;
-
-                for(var i=0; i<len-1; i++){
-                    var b1 = collection[i];
-                    for(var j=i+1; j<len; j++){
-                        var b2 = collection[j];
-                        var x = b1.x - b2.x;
-                        var y = b1.y - b2.y;
-                        var z = b1.z - b2.z;
-                        var l = Math.sqrt(x*x + y*y + z*z);
-                        var xn=x/l, yn=y/l, zn=z/l;
-                        var f1 = (b2.mass*strength)/(l*l);
-                        var f2 = (b1.mass*strength)/(l*l);
-                        b1.accelerate(-xn*f1, -yn*f1, -zn*f1);
-                        b2.accelerate(xn*f2, yn*f2, zn*f2);
-                    }
-                }
-            },
         }),
         AABB: Class({
             type: AABB,
@@ -377,37 +258,31 @@
                     var off = (b.x + radius) - right;
                     b.x -= off;
                     if(restitute) b.px = b.x - vx;
-                    this.onContact(sphere);
                 }
                 else if(b.x - radius < left){
                     var off = left - (b.x - radius);
                     b.x += off;
                     if(restitute) b.px = b.x - vx;
-                    this.onContact(sphere);
                 }
                 if(b.y + radius > top){
                     var off = (b.y + radius) - top;
                     b.y -= off;
                     if(restitute) b.py = b.y - vy;
-                    this.onContact(sphere);
                 }
                 else if(b.y - radius < bottom){
                     var off = bottom - (b.y - radius);
                     b.y += off;
                     if(restitute) b.py = b.y - vy;
-                    this.onContact(sphere);
                 }
                 if(b.z - radius < back){
                     var off = back - (b.z - radius);
                     b.z += off;
                     if(restitute) b.pz = b.z - vz;
-                    this.onContact(sphere);
                 }
                 else if(b.z + radius > front){
                     var off = (b.z + radius) - front;
                     b.z -= off;
                     if(restitute) b.pz = b.z - vz;
-                    this.onContact(sphere);
                 }
             },
         }),
@@ -471,7 +346,6 @@
                         
                         b.setVelocity(vx, vy, vz);
                     }
-                    this.onContact(sphere);
                 }
             },
         }),
@@ -558,7 +432,6 @@
                         b1.setVelocity(v1x, v1y, v1z);
                         b2.setVelocity(v2x, v2y, v2z);
                     }
-                    this.onContact(b2);
                 }
             },
         }),
