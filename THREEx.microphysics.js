@@ -24,7 +24,7 @@ THREEx.Microphysics.prototype.update	= function(scene)
 	console.assert(scene instanceof THREE.Scene);
 	
 	// the actualTime is only for old version of the library
-	var actualTime	= world.step(this._timeStep, Date.now()/1000);
+	var actualTime	= this._world.step(this._timeStep, Date.now()/1000);
 	
 	// go thru each mesh and find the one with the physics
 	// - set there position accordingly
