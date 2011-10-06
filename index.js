@@ -40,13 +40,14 @@ function init() {
 	var material	= [new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } ),new THREE.MeshNormalMaterial()];
 	var mesh	= new THREE.Mesh(geometry, material);
 	scene.addChild(mesh);
+if(false){
 	microphysics.addMesh(mesh, {
 		restitution	: 1.0,
 		flipped		: true
 	});
 
 	// inner cube
-	if(true){
+	if(false){
 		var geometry	= new THREE.CubeGeometry(200,200,200, 10, 10, 10);
 		var material	= [new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } ),new THREE.MeshNormalMaterial()];
 		var mesh	= new THREE.Mesh(geometry, material);
@@ -98,7 +99,7 @@ function init() {
 			if( keyboard.pressed('down') )	player._vphyBody.accelerate(0,0,-acc);
 		}
 	});
-	
+}
 
 	// create the container element
 	container = document.createElement( 'div' );
@@ -155,7 +156,7 @@ return;
 	gravity.direction.z	= position.z;
 }());
 	
-	microphysics.update(scene);	
+	//microphysics.update(scene);	
 
 	// actually display the scene in the Dom element
 	renderer.render( scene, camera );
