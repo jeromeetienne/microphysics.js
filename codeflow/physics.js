@@ -64,7 +64,7 @@
                 listeners[i].apply(obj, arguments);
             }
             return this;
-        },
+        }
     });
 
     var clamp = function(left, right, value){
@@ -75,7 +75,7 @@
         type: ACCELERATOR,
         remove: function(){
             this.to_remove = true;
-        },
+        }
     });
 
     var Body = Class({
@@ -86,7 +86,7 @@
                 x: 0,
                 y: 0,
                 z: 0,
-                density: 1,
+                density: 1
             }, args);
 
             this.id = body_ids++;
@@ -130,7 +130,7 @@
             return [
                 this.px + (this.x - this.px)*u,
                 this.py + (this.y - this.py)*u,
-                this.pz + (this.z - this.pz)*u,
+                this.pz + (this.z - this.pz)*u
             ]
         },
         collide: function(other, delta, restitute){
@@ -180,7 +180,7 @@
                 this.ay += y;
                 this.az += z;
             }
-        },
+        }
     });
 
     vphy = {
@@ -188,7 +188,7 @@
             AABB            : AABB,
             SPHERE          : SPHERE,
             ACCELERATOR     : ACCELERATOR,
-            AABOX           : AABOX,
+            AABOX           : AABOX
         },
         World: Class({
             __init__: function(){
@@ -295,7 +295,7 @@
                 for(var i=0; i<l; i++){
                     accelerators[i].perform(bodies);
                 }
-            },
+            }
         }),
         LinearAccelerator: Class({
             __extends__: Accelerator,
@@ -338,7 +338,7 @@
                         b2.accelerate(xn*f2, yn*f2, zn*f2);
                     }
                 }
-            },
+            }
         }),
         AABB: Class({
             type: AABB,
@@ -347,8 +347,8 @@
             __init__: function(args){
                 var params = extend({
                     size: {
-                        width: 1, height: 1, depth: 1,
-                    },
+                        width: 1, height: 1, depth: 1
+                    }
                 }, args);
                 this.size = params.size;
                 this.init(params);
@@ -409,7 +409,7 @@
                     if(restitute) b.pz = b.z - vz;
                     this.onContact(sphere);
                 }
-            },
+            }
         }),
         AABox: Class({
             type: AABOX,
@@ -418,8 +418,8 @@
             __init__: function(args){
                 var params = extend({
                     size: {
-                        width: 1, height: 1, depth: 1,
-                    },
+                        width: 1, height: 1, depth: 1
+                    }
                 }, args);
                 this.size = params.size;
                 this.init(params);
@@ -473,7 +473,7 @@
                     }
                     this.onContact(sphere);
                 }
-            },
+            }
         }),
         Sphere: Class({
             type: SPHERE,
@@ -481,7 +481,7 @@
             __extends__: Body,
             __init__: function(args){
                 var params = extend({
-                    radius: 1,
+                    radius: 1
                 }, args);
                 this.radius = params.radius;
                 this.init(params);
@@ -560,7 +560,7 @@
                     }
                     this.onContact(b2);
                 }
-            },
-        }),
+            }
+        })
     };
 })();

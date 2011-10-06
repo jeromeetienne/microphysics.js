@@ -40,7 +40,7 @@ function init() {
 	var material	= [new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } ),new THREE.MeshNormalMaterial()];
 	var mesh	= new THREE.Mesh(geometry, material);
 	scene.addChild(mesh);
-if(false){
+
 	microphysics.addMesh(mesh, {
 		restitution	: 1.0,
 		flipped		: true
@@ -67,7 +67,7 @@ if(false){
 	});
 	microphysics.world().add(gravity);
 
-	for( var i = 0; i < 00; i++ ){
+	for( var i = 0; i < 200; i++ ){
 		var mesh	= new THREE.Mesh(new THREE.SphereGeometry(70, 10, 5), new THREE.MeshNormalMaterial());
 		mesh.position.x	= 	(2*Math.random()-1) * 30;
 		mesh.position.y	= 150 + (2*Math.random()-1) * 75;
@@ -80,26 +80,28 @@ if(false){
 		scene.addChild(mesh);		
 	}
 
-	mesh	= new THREE.Mesh(new THREE.SphereGeometry(70, 50, 25), new THREE.MeshNormalMaterial());
-	mesh.position.x	= 	(2*Math.random()-1) * 30;
-	mesh.position.y	= 150 + (2*Math.random()-1) * 75;
-	mesh.position.z	= 	(2*Math.random()-1) * 30;
-	microphysics.addMesh(mesh);
-	scene.addChild(mesh);
-	player	= mesh;
-	
-	microphysics.world().add({
-		type: vphy.types.ACCELERATOR,
-		perform: function(){
-			console.log("perform")
-			var acc	= 1*250;
-			if( keyboard.pressed('right') )	player._vphyBody.accelerate(-acc,0,0);
-			if( keyboard.pressed('left') )	player._vphyBody.accelerate(acc,0,0);
-			if( keyboard.pressed('up') )	player._vphyBody.accelerate(0,0,acc);
-			if( keyboard.pressed('down') )	player._vphyBody.accelerate(0,0,-acc);
-		}
-	});
-}
+	if( false ){
+		mesh	= new THREE.Mesh(new THREE.SphereGeometry(70, 50, 25), new THREE.MeshNormalMaterial());
+		mesh.position.x	= 	(2*Math.random()-1) * 30;
+		mesh.position.y	= 150 + (2*Math.random()-1) * 75;
+		mesh.position.z	= 	(2*Math.random()-1) * 30;
+		microphysics.addMesh(mesh);
+		scene.addChild(mesh);
+		player	= mesh;
+		
+		microphysics.world().add({
+			type: vphy.types.ACCELERATOR,
+			perform: function(){
+				console.log("perform")
+				var acc	= 1*250;
+				if( keyboard.pressed('right') )	player._vphyBody.accelerate(-acc,0,0);
+				if( keyboard.pressed('left') )	player._vphyBody.accelerate(acc,0,0);
+				if( keyboard.pressed('up') )	player._vphyBody.accelerate(0,0,acc);
+				if( keyboard.pressed('down') )	player._vphyBody.accelerate(0,0,-acc);
+			}
+		});		
+	}
+
 
 	// create the container element
 	container = document.createElement( 'div' );
@@ -156,7 +158,7 @@ return;
 	gravity.direction.z	= position.z;
 }());
 	
-	//microphysics.update(scene);	
+	microphysics.update(scene);	
 
 	// actually display the scene in the Dom element
 	renderer.render( scene, camera );
