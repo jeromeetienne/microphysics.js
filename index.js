@@ -79,13 +79,11 @@ function init() {
 		scene.addChild(mesh);		
 	}
 
-	mesh	= new THREE.Mesh(new THREE.SphereGeometry(70, 10, 5), new THREE.MeshNormalMaterial());
+	mesh	= new THREE.Mesh(new THREE.SphereGeometry(70, 50, 25), new THREE.MeshNormalMaterial());
 	mesh.position.x	= 	(2*Math.random()-1) * 30;
 	mesh.position.y	= 150 + (2*Math.random()-1) * 75;
 	mesh.position.z	= 	(2*Math.random()-1) * 30;
-	microphysics.addMesh(mesh, {
-		restitution	: 0.6
-	});
+	microphysics.addMesh(mesh);
 	scene.addChild(mesh);
 	player	= mesh;
 	
