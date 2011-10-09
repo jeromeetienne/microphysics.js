@@ -2,7 +2,6 @@
     var AABB = 0;
     var SPHERE = 1;
     var ACCELERATOR = 2;
-    var AABOX = 3;
 
     var sqrt = Math.sqrt;
     var pow = Math.pow;
@@ -60,23 +59,73 @@
             if(!l) return;
 
             var obj = this.obj;
-            for(var i=0; i<l; i++){
-                listeners[i].apply(obj, arguments);
+            for(var i=0, listener; listener=listeners[i++];){
+                listener.apply(obj, arguments);
             }
             return this;
-        }
+        },
     });
 
     var clamp = function(left, right, value){
-        return max(left, min(right, value));
+        return value < left ? left : (value > right ? right : value);
     };
 
     var Accelerator = Class({
         type: ACCELERATOR,
         remove: function(){
             this.to_remove = true;
-        }
+        },
     });
+
+    var handleContact = function(b1, b2, depth, xn, yn, zn, restitute){
+        var v1x = b1.x - b1.px;
+        var v1y = b1.y - b1.py;
+        var v1z = b1.z - b1.pz;
+        var v2x = b2.x - b2.px;
+        var v2y = b2.y - b2.py;
+        var v2z = b2.z - b2.pz;
+
+        var mt = b1.inv_mass + b2.inv_mass;
+        var f1 = b1.inv_mass/mt;
+        var f2 = b2.inv_mass/mt;
+
+        var off1 = depth*f1;
+        var off2 = depth*f2;
+
+        b1.x += xn*off1;
+        b1.y += yn*off1;
+        b1.z += zn*off1;
+        b2.x -= xn*off2;
+        b2.y -= yn*off2;
+        b2.z -= zn*off2;
+                    
+        if(restitute){
+            var vrx = v1x - v2x;
+            var vry = v1y - v2y;
+            var vrz = v1z - v2z;
+
+            var vdotn = vrx*xn + vry*yn + vrz*zn;
+            var modified_velocity = vdotn/mt;
+
+            var j1 = -(1+b2.restitution)*modified_velocity*b1.inv_mass;
+            var j2 = -(1+b1.restitution)*modified_velocity*b2.inv_mass;
+
+            v1x += j1 * xn
+            v1y += j1 * yn
+            v1z += j1 * zn
+
+            v2x -= j2 * xn
+            v2y -= j2 * yn
+            v2z -= j2 * zn
+            
+            b1.setVelocity(v1x, v1y, v1z);
+            b2.setVelocity(v2x, v2y, v2z);
+        }
+    };
+
+    var by_left = function(b1, b2){
+        return b1.left - b2.left;
+    }
 
     var Body = Class({
         init: function(args){
@@ -86,7 +135,7 @@
                 x: 0,
                 y: 0,
                 z: 0,
-                density: 1
+                density: 1,
             }, args);
 
             this.id = body_ids++;
@@ -95,7 +144,14 @@
             this.restitution = params.restitution;
             this.hardness = params.hardness;
             this.density = params.density;
-            this.mass = params.mass || this.computeMass();
+            if(params.mass == 0 || this.dynamic == false){
+                this.mass = 0;
+                this.inv_mass = 0;
+            }
+            else{
+                this.mass = params.mass || this.computeMass();
+                this.inv_mass = 1/this.mass;
+            }
 
             this.ax = 0;
             this.ay = 0;
@@ -125,50 +181,55 @@
             this.py = this.y - y;
             this.pz = this.z - z;
         },
+        getVelocity: function(){
+            return [
+                this.x - this.px,
+                this.y - this.py,
+                this.z - this.pz,
+            ];
+        },
         getPosition: function(){
             var u = this.world.u;
             return [
                 this.px + (this.x - this.px)*u,
                 this.py + (this.y - this.py)*u,
-                this.pz + (this.z - this.pz)*u
+                this.pz + (this.z - this.pz)*u,
             ]
         },
-        collide: function(other, delta, restitute){
+        collide: function(other, restitute){
             switch(other.type){
                 case AABB:
-                    this.collideAABB(other, delta, restitute);
+                    this.collideAABB(other, restitute);
                     break;
                 case SPHERE:
-                    this.collideSphere(other, delta, restitute);
-                    break;
-                case AABOX:
-                    this.collideAABox(other, delta, restitute);
+                    this.collideSphere(other, restitute);
                     break;
             }
         },
         collideAABB: function(){},
-        collideAABox: function(){},
         collideSphere: function(){},
         momentum: function(){
             if(this.dynamic){
-                var x = this.x*2 - this.px;
-                var y = this.y*2 - this.py;
-                var z = this.z*2 - this.pz;
+                var x=this.x, y=this.y, z=this.z;
 
-                this.px = this.x;
-                this.py = this.y;
-                this.pz = this.z;
+                var xn = x*2 - this.px;
+                var yn = y*2 - this.py;
+                var zn = z*2 - this.pz;
 
-                this.x = x;
-                this.y = y;
-                this.z = z;
+                this.px = x;
+                this.py = y;
+                this.pz = z;
+
+                this.x = xn;
+                this.y = yn;
+                this.z = zn;
             }
         },
-        applyAcceleration: function(delta){
+        applyAcceleration: function(sdelta){
             if(this.dynamic){
-                this.x += this.ax * delta * delta;
-                this.y += this.ay * delta * delta;
-                this.z += this.az * delta * delta;
+                this.x += this.ax * sdelta;
+                this.y += this.ay * sdelta;
+                this.z += this.az * sdelta;
                 this.ax = 0;
                 this.ay = 0;
                 this.az = 0;
@@ -180,7 +241,7 @@
                 this.ay += y;
                 this.az += z;
             }
-        }
+        },
     });
 
     vphy = {
@@ -188,7 +249,6 @@
             AABB            : AABB,
             SPHERE          : SPHERE,
             ACCELERATOR     : ACCELERATOR,
-            AABOX           : AABOX
         },
         World: Class({
             __init__: function(){
@@ -215,27 +275,35 @@
                 this.events.trigger('contact', body1, body2);
             },
             momentum: function(){
-                var bodies = this.bodies;
-                var l = bodies.length;
-                for(var i=0; i<l; i++){
-                    bodies[i].momentum();
+                for(var i=0, bodies=this.bodies, body; body=bodies[i++];){
+                    body.momentum();
                 }
             },
             applyAcceleration: function(delta){
-                var bodies = this.bodies;
-                var l = bodies.length;
-                for(var i=0; i<l; i++){
-                    bodies[i].applyAcceleration(delta);
+                var sdelta = delta*delta;
+                for(var i=0, bodies=this.bodies, body; body=bodies[i++];){
+                    body.applyAcceleration(sdelta);
                 }
             },
-            collide: function(delta, restitute){
+            collide: function(restitute){
+                this.updateBoundingVolumes();
                 var bodies = this.bodies;
+                bodies.sort(by_left);
                 var l = bodies.length;
                 for(var i=0; i<l-1; i++){
-                    var body1 = bodies[i];
+                    var b1 = bodies[i];
                     for(var j=i+1; j<l; j++){
-                        var body2 = bodies[j];
-                        body1.collide(body2, delta, restitute);
+                        var b2 = bodies[j];
+                        if(b1.dynamic || b2.dynamic){
+                            if(b1.right > b2.left){
+                                if(b1.back < b2.front && b1.front > b2.back && b1.bottom < b2.top && b1.top > b2.bottom){
+                                    b1.collide(b2, restitute);
+                                }
+                            }
+                            else{
+                                break;
+                            }
+                        }
                     }
                 }
             },
@@ -259,14 +327,19 @@
                     this.cleanupCollection(managed[i]);
                 }
             },
+            updateBoundingVolumes: function(){
+                var bodies = this.bodies;
+                for(var i=0, body; body=bodies[i++];){
+                    body.updateBoundingVolume();
+                }
+            },
             onestep: function(delta){
                 this.time += delta;
                 this.accelerate();
                 this.applyAcceleration(delta);
-                this.collide(delta, false);
-                this.cleanup();
+                this.collide(false);
                 this.momentum();
-                this.collide(delta, true);
+                this.collide(true);
                 this.cleanup();
             },
             step: function(timestep, now){
@@ -290,55 +363,24 @@
             accelerate: function(delta){
                 var bodies = this.bodies;
                 var accelerators = this.accelerators;
-                var l = accelerators.length;
-
-                for(var i=0; i<l; i++){
-                    accelerators[i].perform(bodies);
+                for(var i=0, accelerator; accelerator=accelerators[i++];){
+                    accelerator.perform(bodies);
                 }
-            }
+            },
         }),
         LinearAccelerator: Class({
             __extends__: Accelerator,
             __init__: function(direction){
-                this.direction = direction;
+                this.x = direction.x;
+                this.y = direction.y;
+                this.z = direction.z;
             },
             perform: function(bodies){
-                var l = bodies.length;
-                for(var i=0; i<l; i++){
-                    this.accelerate(bodies[i]);
+                var x=this.x, y=this.y, z=this.z;
+                for(var i=0, body; body=bodies[i++];){
+                    body.accelerate(x, y, z); 
                 }
             },
-            accelerate: function(body){
-                body.accelerate(this.direction.x, this.direction.y, this.direction.z);
-            }
-        }),
-        NBodyGravity: Class({
-            __extends__: Accelerator,
-            __init__: function(collection, strength){
-                this.collection = collection;
-                this.strength = strength;
-            },
-            perform: function(){
-                var collection = this.collection;
-                var len = collection.length;
-                var strength = this.strength;
-
-                for(var i=0; i<len-1; i++){
-                    var b1 = collection[i];
-                    for(var j=i+1; j<len; j++){
-                        var b2 = collection[j];
-                        var x = b1.x - b2.x;
-                        var y = b1.y - b2.y;
-                        var z = b1.z - b2.z;
-                        var l = Math.sqrt(x*x + y*y + z*z);
-                        var xn=x/l, yn=y/l, zn=z/l;
-                        var f1 = (b2.mass*strength)/(l*l);
-                        var f2 = (b1.mass*strength)/(l*l);
-                        b1.accelerate(-xn*f1, -yn*f1, -zn*f1);
-                        b2.accelerate(xn*f2, yn*f2, zn*f2);
-                    }
-                }
-            }
         }),
         AABB: Class({
             type: AABB,
@@ -346,134 +388,57 @@
             __extends__: Body,
             __init__: function(args){
                 var params = extend({
-                    size: {
-                        width: 1, height: 1, depth: 1
-                    }
+                    width: 1, height: 1, depth: 1,
                 }, args);
-                this.size = params.size;
+                this.width = params.width;
+                this.height = params.height;
+                this.depth = params.depth;
                 this.init(params);
             },
-            collideSphere: function(sphere, delta, restitute){
-                var b = sphere;
-                var radius = sphere.radius;
+            updateBoundingVolume: function(){
+                var x=this.x, y=this.y, z=this.z;
+                var width=this.width/2, height=this.height/2, depth=this.depth/2;
 
-                var left = this.x - this.size.width/2;
-                var right = this.x + this.size.width/2;
+                this.left = x - width;
+                this.right = x + width;
                 
-                var top = this.y + this.size.height/2;
-                var bottom = this.y - this.size.height/2;
+                this.top = y + height;
+                this.bottom = y - height;
                 
-                var front = this.z + this.size.depth/2;
-                var back = this.z - this.size.depth/2;
+                this.front = z + depth;
+                this.back = z - depth;
 
-                var r = this.restitution * sphere.restitution;
-                var h = this.hardness;
-
-                var vx = r*(b.px - b.x);
-                var vy = r*(b.py - b.y);
-                var vz = r*(b.pz - b.z);
-
-                if(b.x + radius > right){
-                    var off = (b.x + radius) - right;
-                    b.x -= off;
-                    if(restitute) b.px = b.x - vx;
-                    this.onContact(sphere);
-                }
-                else if(b.x - radius < left){
-                    var off = left - (b.x - radius);
-                    b.x += off;
-                    if(restitute) b.px = b.x - vx;
-                    this.onContact(sphere);
-                }
-                if(b.y + radius > top){
-                    var off = (b.y + radius) - top;
-                    b.y -= off;
-                    if(restitute) b.py = b.y - vy;
-                    this.onContact(sphere);
-                }
-                else if(b.y - radius < bottom){
-                    var off = bottom - (b.y - radius);
-                    b.y += off;
-                    if(restitute) b.py = b.y - vy;
-                    this.onContact(sphere);
-                }
-                if(b.z - radius < back){
-                    var off = back - (b.z - radius);
-                    b.z += off;
-                    if(restitute) b.pz = b.z - vz;
-                    this.onContact(sphere);
-                }
-                else if(b.z + radius > front){
-                    var off = (b.z + radius) - front;
-                    b.z -= off;
-                    if(restitute) b.pz = b.z - vz;
-                    this.onContact(sphere);
-                }
-            }
-        }),
-        AABox: Class({
-            type: AABOX,
-            dynamic: false,
-            __extends__: Body,
-            __init__: function(args){
-                var params = extend({
-                    size: {
-                        width: 1, height: 1, depth: 1
-                    }
-                }, args);
-                this.size = params.size;
-                this.init(params);
+                return this;
             },
-            collideSphere: function(sphere, delta, restitute){
-                var b = sphere;
-                var radius = sphere.radius;
+            collideSphere: function(b, restitute){
+                var cx = clamp(this.left, this.right, b.x);
+                var cy = clamp(this.bottom, this.top, b.y);
+                var cz = clamp(this.back, this.front, b.z);
 
-                var left = this.x - this.size.width/2;
-                var right = this.x + this.size.width/2;
-                
-                var top = this.y + this.size.height/2;
-                var bottom = this.y - this.size.height/2;
-                
-                var front = this.z + this.size.depth/2;
-                var back = this.z - this.size.depth/2;
-
-                var cx = clamp(left, right, b.x);
-                var cy = clamp(bottom, top, b.y);
-                var cz = clamp(back, front, b.z);
-
-                var x = b.x - cx;
-                var y = b.y - cy;
-                var z = b.z - cz;
-                var l = sqrt(x*x + y*y + z*z);
-                var xn = x/l;
-                var yn = y/l;
-                var zn = z/l;
-               
-                if(l < radius){
-                    var vx = b.x - b.px;
-                    var vy = b.y - b.py;
-                    var vz = b.z - b.pz;
-
-                    var off = radius-l;
-                    
-                    b.x += xn*off;
-                    b.y += yn*off;
-                    b.z += zn*off;
-
-                    if(restitute){
-                        var r = this.restitution * b.restitution;
-                        var d = xn*vx + yn*vy + zn*vz;
-                        var vnx=d*xn, vny=d*yn, vnz=d*zn;
-
-                        vx -= r*vnx+vnx;
-                        vy -= r*vny+vny;
-                        vz -= r*vnz+vnz;
-                        
-                        b.setVelocity(vx, vy, vz);
-                    }
-                    this.onContact(sphere);
+                var x = cx - b.x;
+                var y = cy - b.y;
+                var z = cz - b.z;
+                var ls = x*x + y*y + z*z;
+                if(ls == 0){
+                    var x = this.z - b.x;
+                    var y = this.y - b.y;
+                    var z = this.z - b.z;
+                    var ls = x*x + y*y + z*z;
                 }
-            }
+                if(ls == 0){
+                    return;
+                }
+
+                var radius = b.radius;
+                if(ls < radius*radius){
+                    var l = sqrt(ls);
+                    var xn = x/l;
+                    var yn = y/l;
+                    var zn = z/l;
+                    handleContact(this, b, radius-l, xn, yn, zn, restitute);
+                    this.onContact(b);
+                }
+            },
         }),
         Sphere: Class({
             type: SPHERE,
@@ -481,7 +446,7 @@
             __extends__: Body,
             __init__: function(args){
                 var params = extend({
-                    radius: 1
+                    radius: 1,
                 }, args);
                 this.radius = params.radius;
                 this.init(params);
@@ -489,78 +454,39 @@
             computeMass: function(){
                 return (4/3)*pi*pow(this.radius, 3)*this.density;
             },
-            collideAABB: function(other, delta, restitute){
-                other.collideSphere(this, delta, restitute);
+            collideAABB: function(other, restitute){
+                other.collideSphere(this, restitute);
             },
-            collideAABox: function(other, delta, restitute){
-                other.collideSphere(this, delta, restitute);
+            updateBoundingVolume: function(){
+                var x=this.x, y=this.y, z=this.z;
+                var radius = this.radius;
+
+                this.left = x - radius;
+                this.right = x + radius;
+                
+                this.top = y + radius;
+                this.bottom = y - radius;
+                
+                this.front = z + radius;
+                this.back = z - radius;
+                return this;
             },
-            collideSphere: function(other, delta, restitute){
+            collideSphere: function(b2, restitute){
                 var b1 = this;
-                var b2 = other;
 
                 var x = b1.x - b2.x;
                 var y = b1.y - b2.y;
                 var z = b1.z - b2.z;
-                var l = sqrt(x*x + y*y + z*z);
-                var xn=x/l, yn=y/l, zn=z/l;
-                var target = this.radius + other.radius;
+                var ls = x*x + y*y + z*z;
+                var target = b1.radius + b2.radius;
                         
-                if(l < target){
-                    var v1x = b1.x - b1.px;
-                    var v1y = b1.y - b1.py;
-                    var v1z = b1.z - b1.pz;
-                    
-                    var v2x = b2.x - b2.px;
-                    var v2y = b2.y - b2.py;
-                    var v2z = b2.z - b2.pz;
-
-                    var mt = b1.mass + b2.mass;
-                    var f1 = b1.mass/mt;
-                    var f2 = b2.mass/mt;
-
-                    //var off = (target-l)/2;
-                    var off1 = (target-l)*f2;
-                    var off2 = (target-l)*f1;
-
-                    b1.x += xn*off1;
-                    b1.y += yn*off1;
-                    b1.z += zn*off1;
-                    b2.x -= xn*off2;
-                    b2.y -= yn*off2;
-                    b2.z -= zn*off2;
-
-                    if(restitute){
-                        var r = this.restitution * other.restitution;
-
-                        var d1 = xn*v1x + yn*v1y + zn*v1z;
-                        var d2 = xn*v2x + yn*v2y + zn*v2z;
-
-                        var v1nx=d1*xn, v1ny=d1*yn, v1nz=d1*zn;
-                        var v2nx=d2*xn, v2ny=d2*yn, v2nz=d2*zn;
-
-                        var vrx = v1nx - v2nx;
-                        var vry = v1ny - v2ny;
-                        var vrz = v1nz - v2nz;
-
-                        var mt = b1.mass+b2.mass;
-                        var mf1 = (b1.mass-b2.mass)/mt;
-                        var mf2 = (2*b1.mass)/mt;
-
-                        v1x += r*(v2nx+vrx*mf1 - v1nx);
-                        v1y += r*(v2ny+vry*mf1 - v1ny);
-                        v1z += r*(v2nz+vrz*mf1 - v1nz);
-                        
-                        v2x += r*vrx*mf2;
-                        v2y += r*vry*mf2;
-                        v2z += r*vrz*mf2;
-
-                        b1.setVelocity(v1x, v1y, v1z);
-                        b2.setVelocity(v2x, v2y, v2z);
-                    }
-                    this.onContact(b2);
+                if(ls < target*target){
+                    var l = sqrt(ls);
+                    var xn=x/l, yn=y/l, zn=z/l;
+                    handleContact(b1, b2, target-l, xn, yn, zn, restitute);
+                    b1.onContact(b2);
                 }
-            }
-        })
+            },
+        }),
     };
 })();

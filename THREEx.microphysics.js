@@ -56,16 +56,15 @@ THREEx.Microphysics.prototype._addCube	= function(mesh, opts)
 	console.assert( mesh.geometry instanceof THREE.CubeGeometry );
 	opts		= opts	|| {};
 	var restitution	= opts.restitution	? opts.restitution	: 0.6;
-	var flipped	= 'flipped' in opts	? opts.flipped		: false;
-	var bodyClass	= flipped ? vphy.AABB : vphy.AABox;
+
+// backward compatibility
+console.assert(opts.flipped !== true);
 
 	mesh.geometry.computeBoundingBox();
-	mesh._vphyBody	= new bodyClass({
-		size	: {
-			width	: mesh.geometry.boundingBox.x[1] - mesh.geometry.boundingBox.x[0],
-			height	: mesh.geometry.boundingBox.y[1] - mesh.geometry.boundingBox.y[0],
-			depth	: mesh.geometry.boundingBox.z[1] - mesh.geometry.boundingBox.z[0]
-		},
+	mesh._vphyBody	= new vphy.AABB({
+		width		: mesh.geometry.boundingBox.x[1] - mesh.geometry.boundingBox.x[0],
+		height		: mesh.geometry.boundingBox.y[1] - mesh.geometry.boundingBox.y[0],
+		depth		: mesh.geometry.boundingBox.z[1] - mesh.geometry.boundingBox.z[0],
 		x		: mesh.position.x,
 		y		: mesh.position.y,
 		z		: mesh.position.z,
