@@ -1,5 +1,61 @@
+//
+// # Initialisation
+//
+// You instanciate the physics engine, like that.
+//
+// ```
+//	var microphysics	= new THREEx.Microphysics(opts);
+// ```
+//
+// ```opts``` is optional.
+// ```opts.timeStep``` controls the frequency of the world update.
+// The smaller it is the more accurate is the physics but the longer it is to compute.
+// It defaults to ```1/60```. Once instanciated, you start it.
+//
+// ```
+//     microphysics.start();
+// ```
+//
+// # Binding THREE.Mesh
+//
+// Of course we need to add some mesh in the world. After this line, the ```mesh```
+// is bound to microphysics.js, so its position is driven by the physics. 
+//
+// ```
+//     microphysics.bindMesh(mesh, opts);
+// ```
+//
+// ```mesh.position``` is honored.
+// If you need to unbind a ```mesh```, just do
+//
+// ```
+//     microphysics.unbindMesh(mesh);
+// ```
+//
+// # Updating the physics
+//
+// In your render loop, just add this line. It will first update the physics world and
+// then move accordingly any ```THREE.Mesh``` you bound.
+//
+// ```
+//     microphysics.update(scene);	
+// ```
+//
+// # Needs a Direct Access ?
+//
+// If you need to have direct access to microphysics.js, uses ```mesh._vphyBody``` to get the ```vphy.Body```
+// bound to ```mesh```. To access ```vphy.World```, just use ```microphysics.word()```.
+//
+// # Code
+
+//
+
+/** @namespace */
 var THREEx	= THREEx 		|| {};
 
+/**
+ * Constructor
+*/
 THREEx.Microphysics	= function(opts)
 {
 	opts		= opts	|| {};
@@ -8,17 +64,20 @@ THREEx.Microphysics	= function(opts)
 	return this;
 }
 
+// start the physics immediatly
 THREEx.Microphysics.prototype.start	= function()
 {
 	this._world.start(Date.now()/1000);
 	return this;
 }
 
+// to access vphy.World
 THREEx.Microphysics.prototype.world	= function()
 {
 	return this._world;
 }
 
+// update the physics for all object bound to a scene
 THREEx.Microphysics.prototype.update	= function(scene)
 {
 	console.assert(scene instanceof THREE.Scene);
@@ -59,7 +118,7 @@ THREEx.Microphysics.prototype.bindMesh	= function(mesh, opts)
 		return this._bindSphere( mesh, opts );
 	}else if( mesh.geometry instanceof THREE.CubeGeometry ){
 		return this._bindCube( mesh, opts );
-	}else	console.assert(false);
+	}else	console.assert(false, "unhandled type of THREE.Geometry");
 	return this;
 }
 
@@ -77,9 +136,6 @@ THREEx.Microphysics.prototype._bindCube	= function(mesh, opts)
 	console.assert( mesh.geometry instanceof THREE.CubeGeometry );
 	opts		= opts	|| {};
 	var restitution	= opts.restitution	? opts.restitution	: 0.6;
-
-// backward compatibility
-console.assert(opts.flipped !== true);
 
 	mesh.geometry.computeBoundingBox();
 	mesh._vphyBody	= new vphy.AABB({
