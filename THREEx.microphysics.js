@@ -41,17 +41,38 @@ THREEx.Microphysics.prototype.update	= function(scene)
 	return this;
 }
 
+/**
+ * old api for bindMesh
+ * to remove
+*/
 THREEx.Microphysics.prototype.addMesh	= function(mesh, opts)
 {
+	return this.bindMesh(mesh, opts);
+}
+
+/**
+ * Bind a mesh to microphysics.js
+*/
+THREEx.Microphysics.prototype.bindMesh	= function(mesh, opts)
+{
 	if( mesh.geometry instanceof THREE.SphereGeometry ){
-		return this._addSphere( mesh, opts );
+		return this._bindSphere( mesh, opts );
 	}else if( mesh.geometry instanceof THREE.CubeGeometry ){
-		return this._addCube( mesh, opts );
+		return this._bindCube( mesh, opts );
 	}else	console.assert(false);
 	return this;
 }
 
-THREEx.Microphysics.prototype._addCube	= function(mesh, opts)
+/**
+ * Unbind a mesh to microphysics.js
+*/
+THREEx.Microphysics.prototype.unbindMesh	= function(mesh)
+{
+	this._world.remove(mesh._vphyBody);
+	delete mesh._vphyBody;
+}
+
+THREEx.Microphysics.prototype._bindCube	= function(mesh, opts)
 {
 	console.assert( mesh.geometry instanceof THREE.CubeGeometry );
 	opts		= opts	|| {};
@@ -75,7 +96,7 @@ console.assert(opts.flipped !== true);
 	return this;
 }
 
-THREEx.Microphysics.prototype._addSphere	= function(mesh, opts)
+THREEx.Microphysics.prototype._bindSphere	= function(mesh, opts)
 {
 	console.assert( mesh.geometry instanceof THREE.SphereGeometry );
 
