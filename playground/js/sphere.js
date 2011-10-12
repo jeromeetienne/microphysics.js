@@ -1,7 +1,7 @@
 var sphereMeshes	= [];
 
 function spheresInit(opts){
-	var nbSpheres	= opts.nbSpheres	? opts.nbSpheres	: 0;
+	var nbSpheres	= opts.quantity		? opts.quantity		: 0;
 	var restitution	= opts.restitution	? opts.restitution	: 0;
 
 	var geometry	= new THREE.SphereGeometry(70, 10, 5);
@@ -9,7 +9,7 @@ function spheresInit(opts){
 
 	for( var i = 0; i < nbSpheres; i++ ){
 		var radius	= 20+Math.random()*50;
-radius	= 75;
+radius	= 100;
 		var geometry	= new THREE.SphereGeometry(radius, 10, 5);
 		var mesh	= new THREE.Mesh(geometry, material);
 		mesh.position.x	= (2*Math.random()-1) * 1500;

@@ -1,16 +1,12 @@
 var player;
 
 function playerInit(restitution)
-{	
+{
+	var radius	= 400;
+
 	var material	= new THREE.MeshLambertMaterial( { color: 0xFF0000 } );
-	var geometry	= new THREE.SphereGeometry(70, 50, 25);
+	var geometry	= new THREE.SphereGeometry(radius, 50, 25);
 	var mesh	= new THREE.Mesh(geometry, material);
-	mesh.position.x	=  (2*Math.random()-1) * 30;
-	//mesh.position.y	= 150 + (2*Math.random()-1) * 75;
-	mesh.position.z	=  (2*Math.random()-1) * 30;
-	mesh.position.x	= 0;
-	mesh.position.y	= 0;
-	mesh.position.z	= 0;
 	scene.addChild(mesh);
 	player	= mesh;
 
@@ -28,7 +24,7 @@ function playerInit(restitution)
 	microphysics.world().add({
 		type: vphy.types.ACCELERATOR,
 		perform: function(){
-			var acc		= 1*250;
+			var acc		= 20*250;
 			var body	= microphysics.body(mesh);
 			if( keyboard.pressed('right') )	body.accelerate(-acc,0,0);
 			if( keyboard.pressed('left') )	body.accelerate(acc,0,0);

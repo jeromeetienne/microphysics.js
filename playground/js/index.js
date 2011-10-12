@@ -17,14 +17,30 @@ var pageOptions		= {
 	gravity			: true,
 	devOrientation		: true,
 	
-	nbSpheres		: 500,
-	sphereRestitution	: 1.0,
+	sphere	: {
+		enable		: true,
+		quantity	: 200,
+		restitution	: 1.0
+	},
 	
-	withPlayer		: false,
-	playerRestitution	: 1.0,
+	player	: {
+		enable		: true,
+		restitution	: 1.0
+	},
 
-	nBodyGravity		: false,
-	nBodyGravityStrength	: 10
+	nBodyGravity	: {
+		enable		: true,
+		strength	: 10,
+	},
+	
+	innerCubeEnable		: false,
+	innerCubeRestitution	: 1.0,
+	
+	outterCubeEnable	: true,
+	outterCubeWidth		: 8000,
+	outterCubeHeight	: 4000,
+	outterCubeDepth		: 4000,
+	outterCubeRestitution	: 1.0,
 };
 
 // ## bootstrap functions
@@ -43,7 +59,7 @@ if( !Detector.webgl ){
 function buildGui(opts, callback)
 {
 	var gui = new DAT.GUI({
-		height	: 9 * 32 - 1
+		height	: 10 * 32 - 1
 	});
 
 	gui.add(opts, 'physicsSteps')		.name('physics steps').min(15).max(360);
@@ -51,21 +67,22 @@ function buildGui(opts, callback)
 	gui.add(opts, 'gravity');
 	gui.add(opts, 'devOrientation')		.name('device orientation');
 
-	gui.add(opts, 'nbSpheres')		.name('Number of Sphere').min(0).max(200);
-	gui.add(opts, 'sphereRestitution')	.name('Sphere Restitution').min(0).max(3);
+	gui.add(opts.sphere, 'enable')		.name('Sphere Enable');
+	gui.add(opts.sphere, 'quantity')	.name('Number of Sphere').min(0).max(200);
+	gui.add(opts.sphere, 'restitution')	.name('Sphere Restitution').min(0).max(3);
 
-	gui.add(opts, 'withPlayer')		.name('With Player');
-	gui.add(opts, 'playerRestitution')	.name('Player Restitution').min(0).max(3);
+	gui.add(opts.player, 'enable')		.name('Player Enable');
+	gui.add(opts.player, 'restitution')	.name('Player Restitution').min(0).max(3);
 
-	gui.add(opts, 'nBodyGravity')		.name('n-bodies gravity');
-	gui.add(opts, 'nBodyGravityStrength')	.name('n-bodies strengh').min(0).max(1.0);
+	gui.add(opts.nBodyGravity, 'enable')	.name('n-bodies gravity enable');
+	gui.add(opts.nBodyGravity, 'strength')	.name('n-bodies strengh').min(0).max(1.0);
 }
 
 // ## Initialize everything
 function init() {
 	// create the camera
 	camera = new THREE.Camera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
-	camera.position.z	= -5000;
+	camera.position.z	= -5500;
 	// create the Scene
 	scene = new THREE.Scene();
 
@@ -87,21 +104,27 @@ function init() {
 
 
 	// outter cube
-	outterCubeInit();
+	if( pageOptions.outterCubeEnable )	outterCubeInit();
 
 	// inner cube
-	if( true )	innerCubeInit();
+	if( pageOptions.innerCubeEnable )	innerCubeInit();
 
 	// gravity
 	if( pageOptions.gravity )	gravityInit();
 
-	spheresInit({
-		nbSpheres	: pageOptions.nbSpheres
-	});
+	if( pageOptions.sphere.enable ){
+		spheresInit({
+			quantity	: pageOptions.sphere.quantity,
+			restitution	: pageOptions.sphere.restitution
+		});
+	}
 	
-	if( pageOptions.withPlayer )	playerInit(pageOptions.restitution);
+	if( pageOptions.player.enable )	playerInit(pageOptions.player.restitution);
 	if( pageOptions.devOrientation)	devOrientationInit();
-	if( pageOptions.nBodyGravity)	nBodyGravityInit(pageOptions.nBodyGravityStrength);
+
+	if( pageOptions.nBodyGravity.enable){
+		nBodyGravityInit(pageOptions.nBodyGravity.strength);
+	}
 
 	// create the container element
 	container = document.createElement( 'div' );
@@ -139,7 +162,7 @@ function render() {
 
 	if( pageOptions.devOrientation)		devOrientationUpdate();
 
-	if( pageOptions.withPlayer )		playerUpdate();
+	if( pageOptions.playerEnable )		playerUpdate();
 
 	microphysics.update(scene);	
 
