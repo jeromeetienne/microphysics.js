@@ -1,4 +1,8 @@
 //
+// THREEx.microphysics.js is a THREEx wrapper for microphysics.js.
+// It helps binding three.js objects to microphysics.js
+// The API is chained for convenience.
+//
 // # Initialisation
 //
 // You instanciate the physics engine, like that.
@@ -106,7 +110,7 @@ THREEx.Microphysics.prototype.update	= function(scene)
 }
 
 /**
- * old api for bindMesh
+ * backward compatibility api for bindMesh
  * to remove
 */
 THREEx.Microphysics.prototype.addMesh	= function(mesh, opts)
@@ -134,6 +138,7 @@ THREEx.Microphysics.prototype.unbindMesh	= function(mesh)
 {
 	this._world.remove(mesh._vphyBody);
 	delete mesh._vphyBody;
+	return this;
 }
 
 THREEx.Microphysics.prototype._bindCube	= function(mesh, opts)
