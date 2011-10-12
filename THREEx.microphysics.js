@@ -76,6 +76,11 @@ THREEx.Microphysics.prototype.world	= function()
 {
 	return this._world;
 }
+// to access vphy.Body
+THREEx.Microphysics.prototype.body	= function(mesh)
+{
+	return mesh._vphyBody;
+}
 
 // update the physics for all object bound to a scene
 THREEx.Microphysics.prototype.update	= function(scene)
