@@ -342,7 +342,7 @@
             },
             onestep: function(delta){
                 this.time += delta;
-                this.accelerate();
+                this.accelerate(delta);     // __doc__ passing delta to accelerator.perform()
                 this.applyAcceleration(delta);
                 this.collide(false);
                 this.momentum();
@@ -371,7 +371,7 @@
                 var bodies = this.bodies;
                 var accelerators = this.accelerators;
                 for(var i=0, accelerator; accelerator=accelerators[i++];){
-                    accelerator.perform(bodies);
+                    accelerator.perform(bodies, delta); // __doc__ passing delta to perform() thus accelerator may accelerate independantly of delta 
                 }
             },
         }),

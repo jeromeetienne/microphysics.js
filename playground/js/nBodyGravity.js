@@ -1,15 +1,22 @@
-function nBodyGravityInit(nBodyGravityStrength){
+var nBodyGravityAcc;
+
+function nBodyGravityInit(){
+
+	if( nBodyGravityAcc )	return;
+
 	var collection	= [];
-	var strength	= nBodyGravityStrength;
 	sphereMeshes.forEach(function(mesh){
 		var body	= microphysics.body(mesh);
 		collection.push(body);
 	})
 
-	microphysics.world().add({
+	nBodyGravityAcc	= {
 		type	: vphy.types.ACCELERATOR,
-		perform	: function(bodies){
-			var len = collection.length;
+		perform	: function(bodies, deltaTime){
+			if( !nBodyGravityAcc )	return;
+
+			var len		= collection.length;
+			var strength	= pageOptions.nBodyGravity.strength;
 			for(var i=0; i<len-1; i++){
 				var b1 = collection[i];
 				for(var j=i+1; j<len; j++){
@@ -25,6 +32,18 @@ function nBodyGravityInit(nBodyGravityStrength){
 					b2.accelerate(xn*f2, yn*f2, zn*f2);
 				}
 			}
+		},
+		remove	: function(){
+			this.to_remove	= true;
 		}
-	});
+	};
+	microphysics.world().add(nBodyGravityAcc);
+}
+
+function nBodyGravityDestroy(){
+
+	if( !nBodyGravityAcc )	return;
+
+	microphysics.world().remove(nBodyGravityAcc)
+	nBodyGravityAcc	= null;;
 }

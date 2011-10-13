@@ -6,7 +6,7 @@ function devOrientationInit(){
 	deviceOrientation	= new THREEx.DeviceOrientationState();
 	devOrientationAcc	= {
 		type: vphy.types.ACCELERATOR,
-		perform: function(bodies){
+		perform: function(bodies, deltaTime){
 			if( !deviceOrientation )	return;
 			var vector	= new THREE.Vector3(0, -10 * 250, 0);
 			var angleX	= deviceOrientation.angleX();

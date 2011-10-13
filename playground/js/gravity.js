@@ -1,7 +1,6 @@
 var gravity;
 function gravityInit()
 {
-console.log("gravity init")
 	if( gravity )	return;
 	gravity	= new vphy.LinearAccelerator({
 		x	: 0, 
@@ -13,7 +12,6 @@ console.log("gravity init")
 
 function gravityDestroy()
 {
-console.log("gravity destroy")
 	if( !gravity )	return;
 	microphysics.world().remove(gravity);
 	gravity	= null;

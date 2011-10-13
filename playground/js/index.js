@@ -80,7 +80,7 @@ function buildGui(opts, callback)
 	gui.add(opts.player, 'restitution')	.name('Player Restitution').min(0).max(3).onChange(change);
 
 	gui.add(opts.nBodyGravity, 'enable')	.name('n-bodies gravity enable').onChange(change);
-	gui.add(opts.nBodyGravity, 'strength')	.name('n-bodies strengh').min(0).max(1.0).onChange(change);
+	gui.add(opts.nBodyGravity, 'strength')	.name('n-bodies strengh').min(0).max(10.0).onFinishChange(change);
 }
 
 // ## Initialize everything
@@ -99,15 +99,21 @@ function init() {
 				
 	// build the GUI
 	buildGui(pageOptions, function(){
-		console.log("pageOptions", JSON.stringify(pageOptions, null, '\t'))
+		//console.log("pageOptions", JSON.stringify(pageOptions, null, '\t'))
 
 		microphysics._timeStep	= 1/pageOptions.physicsSteps;
 
 		if( pageOptions.gravity )	gravityInit();
 		else				gravityDestroy();
 
+		if( pageOptions.player )	playerInit();
+		else				playerDestroy();
+
 		if( pageOptions.devOrientation)	devOrientationInit();
 		else				devOrientationDestroy();
+
+		if( pageOptions.nBodyGravity.enable)	nBodyGravityInit();
+		else					nBodyGravityDestroy();
 	});
 
 	microphysics	= new THREEx.Microphysics({
