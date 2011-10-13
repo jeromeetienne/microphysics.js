@@ -19,7 +19,7 @@ var pageOptions		= {
 	
 	sphere	: {
 		enable		: true,
-		quantity	: 200,
+		quantity	: 300,
 		restitution	: 1.0
 	},
 	
