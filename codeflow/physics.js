@@ -271,6 +271,13 @@
                 }
                 return this;
             },
+            // added __doc__
+            remove: function(obj){
+                for(var i=0; i<arguments.length; i++){
+                    var obj = arguments[i];
+                    obj.remove();
+                }
+            },
             onContact: function(body1, body2){
                 this.events.trigger('contact', body1, body2);
             },

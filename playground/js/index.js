@@ -14,8 +14,8 @@ var gravity;
 var pageOptions		= {
 	physicsSteps		: 60,
 
-	gravity			: true,
-	devOrientation		: true,
+	gravity			: false,
+	devOrientation		: false,
 	
 	sphere	: {
 		enable		: true,
@@ -30,16 +30,18 @@ var pageOptions		= {
 
 	nBodyGravity	: {
 		enable		: true,
-		strength	: 10,
+		strength	: 5,
 	},
 	
-	innerCubeEnable		: false,
-	innerCubeRestitution	: 1.0,
+	innerCube	: {
+		enable		: false,
+		restitution	: 1.0,
+	},
 	
 	outterCubeEnable	: true,
-	outterCubeWidth		: 8000,
-	outterCubeHeight	: 4000,
-	outterCubeDepth		: 4000,
+	outterCubeWidth		: 10000,
+	outterCubeHeight	: 5000,
+	outterCubeDepth		: 5000,
 	outterCubeRestitution	: 1.0,
 };
 
@@ -61,21 +63,24 @@ function buildGui(opts, callback)
 	var gui = new DAT.GUI({
 		height	: 10 * 32 - 1
 	});
+	var change	= function(){
+		callback(opts);
+	};
 
-	gui.add(opts, 'physicsSteps')		.name('physics steps').min(15).max(360);
+	gui.add(opts, 'physicsSteps')		.name('physics steps').min(15).max(360).onFinishChange(change);
 
-	gui.add(opts, 'gravity');
-	gui.add(opts, 'devOrientation')		.name('device orientation');
+	gui.add(opts, 'gravity')		.onChange(change);
+	gui.add(opts, 'devOrientation')		.name('device orientation').onChange(change);
 
-	gui.add(opts.sphere, 'enable')		.name('Sphere Enable');
-	gui.add(opts.sphere, 'quantity')	.name('Number of Sphere').min(0).max(200);
-	gui.add(opts.sphere, 'restitution')	.name('Sphere Restitution').min(0).max(3);
+	gui.add(opts.sphere, 'enable')		.name('Sphere Enable').onChange(change);
+	gui.add(opts.sphere, 'quantity')	.name('Number of Sphere').min(0).max(200).onChange(change);
+	gui.add(opts.sphere, 'restitution')	.name('Sphere Restitution').min(0).max(3).onChange(change);
 
-	gui.add(opts.player, 'enable')		.name('Player Enable');
-	gui.add(opts.player, 'restitution')	.name('Player Restitution').min(0).max(3);
+	gui.add(opts.player, 'enable')		.name('Player Enable').onChange(change);
+	gui.add(opts.player, 'restitution')	.name('Player Restitution').min(0).max(3).onChange(change);
 
-	gui.add(opts.nBodyGravity, 'enable')	.name('n-bodies gravity enable');
-	gui.add(opts.nBodyGravity, 'strength')	.name('n-bodies strengh').min(0).max(1.0);
+	gui.add(opts.nBodyGravity, 'enable')	.name('n-bodies gravity enable').onChange(change);
+	gui.add(opts.nBodyGravity, 'strength')	.name('n-bodies strengh').min(0).max(1.0).onChange(change);
 }
 
 // ## Initialize everything
@@ -95,6 +100,14 @@ function init() {
 	// build the GUI
 	buildGui(pageOptions, function(){
 		console.log("pageOptions", JSON.stringify(pageOptions, null, '\t'))
+
+		microphysics._timeStep	= 1/pageOptions.physicsSteps;
+
+		if( pageOptions.gravity )	gravityInit();
+		else				gravityDestroy();
+
+		if( pageOptions.devOrientation)	devOrientationInit();
+		else				devOrientationDestroy();
 	});
 
 	microphysics	= new THREEx.Microphysics({

@@ -20,3 +20,4 @@ function innerCubeInit(){
 		restitution	: restitution
 	});
 }
+

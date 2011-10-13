@@ -2,7 +2,7 @@ var player;
 
 function playerInit(restitution)
 {
-	var radius	= 400;
+	var radius	= 300;
 
 	var material	= new THREE.MeshLambertMaterial( { color: 0xFF0000 } );
 	var geometry	= new THREE.SphereGeometry(radius, 50, 25);
