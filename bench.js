@@ -30,7 +30,7 @@ for(var i = 0; i < 300; i++){
 		y		: 50 * (Math.random()*2-1),
 		z		: 50 * (Math.random()*2-1)
 	});
-	spheres.push(sphere);
+	spheres.push(sphere); 
 
 	world.add(sphere);
 }
