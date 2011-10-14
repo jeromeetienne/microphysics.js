@@ -1,15 +1,16 @@
-var Playground	= Playground	|| {};
+var deviceOrientation;
+var devOrientationAcc;
 
-Playground.DevOrientation	= function()
-{
-	this._orientationState	= new THREEx.DeviceOrientationState();
-	this._accelerator	= {
+function devOrientationInit(){
+	if( deviceOrientation )	return;
+	deviceOrientation	= new THREEx.DeviceOrientationState();
+	devOrientationAcc	= {
 		type: vphy.types.ACCELERATOR,
 		perform: function(bodies, deltaTime){
 			if( !deviceOrientation )	return;
 			var vector	= new THREE.Vector3(0, -10 * 250, 0);
-			var angleX	= this._orientationState.angleX();
-			var angleZ	= this._orientationState.angleZ();
+			var angleX	= deviceOrientation.angleX();
+			var angleZ	= deviceOrientation.angleZ();
 			
 			var srcMatrix	= new THREE.Matrix4();
 			srcMatrix.setPosition(vector);
@@ -25,20 +26,23 @@ Playground.DevOrientation	= function()
 				var body	= bodies[i];
 				body.accelerate(position.x, position.y, position.z); 
 			}
-		}.bind(this),
+		},
 		remove	: function(){
 			this.to_remove	= true;
 		}
 	};
-	microphysics.world().add(this._accelerator);
+	microphysics.world().add(devOrientationAcc);
 }
 
-Playground.DevOrientation.prototype.destroy	= function()
-{
-	this._orientationState.destroy();
-	this._orientationState	= null;
-	
-	microphysics.world().remove(this._accelerator);
-	this._accelerator	= null;
+function devOrientationUpdate(){
 }
 
+function devOrientationDestroy(){
+	if( !deviceOrientation )	return;
+
+	deviceOrientation.destroy();
+	deviceOrientation	= null;
+
+	microphysics.world().remove(devOrientationAcc);
+	devOrientationAcc	= null;
+}

@@ -1,3 +1,4 @@
+/** @namespace */
 var Playground	= Playground	|| {};
 
 Playground.Gravity	= function()

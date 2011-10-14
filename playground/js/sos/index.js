@@ -10,19 +10,16 @@ var camera, scene, renderer, stats;
 
 var microphysics;
 var gravity;
-var deviceOrientation;
-var player;
-
 
 var pageOptions		= {
 	physicsSteps		: 60,
 
-	gravity			: false,
-	devOrientation		: true,
+	gravity			: true,
+	devOrientation		: false,
 	
 	sphere	: {
 		enable		: true,
-		quantity	: 0,
+		quantity	: 50,
 		restitution	: 1.0
 	},
 	
@@ -45,7 +42,7 @@ var pageOptions		= {
 	outterCubeWidth		: 10000,
 	outterCubeHeight	: 5000,
 	outterCubeDepth		: 5000,
-	outterCubeRestitution	: 0.6,
+	outterCubeRestitution	: 1.0,
 };
 
 // ## bootstrap functions
@@ -80,7 +77,7 @@ function buildGui(opts, callback)
 	gui.add(opts.sphere, 'restitution')	.name('Sphere Restitution').min(0).max(3).onChange(change);
 
 	gui.add(opts.player, 'enable')		.name('Player Enable').onChange(change);
-	gui.add(opts.player, 'restitution')	.name('Player Restitution').min(0).max(3).onFinishChange(change);
+	gui.add(opts.player, 'restitution')	.name('Player Restitution').min(0).max(3).onChange(change);
 
 	gui.add(opts.nBodyGravity, 'enable')	.name('n-bodies gravity enable').onChange(change);
 	gui.add(opts.nBodyGravity, 'strength')	.name('n-bodies strengh').min(0).max(10.0).onFinishChange(change);
@@ -114,24 +111,11 @@ function init() {
 			gravity	= null;
 		}
 
-		// handle devOrientation
-		if( pageOptions.devOrientation ){
-			if( !deviceOrientation ){
-				deviceOrientation	= new Playground.DevOrientation();
-			}
-		}else{
-			if( deviceOrientation )	deviceOrientation.destroy();
-			deviceOrientation	= null;
-		}
+		if( pageOptions.player )	playerInit();
+		else				playerDestroy();
 
-		// handle player
-		if( pageOptions.player.enable ){
-			if( !player )	player	= new Playground.Player();
-			player.config();
-		}else{
-			if( player )	player.destroy();
-			player	= null;
-		}
+		if( pageOptions.devOrientation)	devOrientationInit();
+		else				devOrientationDestroy();
 
 		if( pageOptions.nBodyGravity.enable)	nBodyGravityInit();
 		else					nBodyGravityDestroy();
@@ -162,9 +146,8 @@ function init() {
 		});
 	}
 	
-	if( pageOptions.player.enable )	player	= new Playground.Player();
-
-	if( pageOptions.devOrientation )	deviceOrientation	= new Playground.DevOrientation();
+	if( pageOptions.player.enable )	playerInit(pageOptions.player.restitution);
+	if( pageOptions.devOrientation)	devOrientationInit();
 
 	if( pageOptions.nBodyGravity.enable){
 		nBodyGravityInit(pageOptions.nBodyGravity.strength);
@@ -204,7 +187,9 @@ function animate() {
 // ## Render the 3D Scene
 function render() {
 
-	if( player )		player.update();
+	if( pageOptions.devOrientation)		devOrientationUpdate();
+
+	if( pageOptions.playerEnable )		playerUpdate();
 
 	microphysics.update(scene);	
 

@@ -167,8 +167,7 @@ THREEx.Microphysics.prototype._bindSphere	= function(mesh, opts)
 	console.assert( mesh.geometry instanceof THREE.SphereGeometry );
 
 	opts		= opts	|| {};
-	var restitution	= opts.restitution	? opts.restitution	: 0.6;
-
+	var restitution	= 'restitution' in opts	? opts.restitution	: 0.6;
 	mesh.geometry.computeBoundingBox();
 	mesh._vphyBody	= new vphy.Sphere({
 		restitution	: restitution,

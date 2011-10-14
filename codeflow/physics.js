@@ -137,13 +137,14 @@
                 z: 0,
                 density: 1,
             }, args);
-
+console.log("resitution", params.restitution);
             this.id = body_ids++;
             this.events = new Events(this);
 
             this.restitution = params.restitution;
             this.hardness = params.hardness;
             this.density = params.density;
+            // __doc__ is this .mass==0 ok ? there is a param.mass || in the else
             if(params.mass == 0 || this.dynamic == false){
                 this.mass = 0;
                 this.inv_mass = 0;
