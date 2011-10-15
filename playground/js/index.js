@@ -20,21 +20,21 @@ var pageOptions		= {
 	physicsSteps		: 60,
 
 	gravity			: false,
-	devOrientation		: false,
+	devOrientation		: true,
 	
 	spheres	: {
 		enable		: true,
-		quantity	: 100,
+		quantity	: 400,
 		restitution	: 1.0
 	},
 	
 	player	: {
-		enable		: true,
+		enable		: false,
 		restitution	: 1.0
 	},
 
 	nBodyGravity	: {
-		enable		: true,
+		enable		: false,
 		strength	: 5,
 	},
 	
