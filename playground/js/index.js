@@ -20,10 +20,10 @@ var pageOptions		= {
 	physicsSteps		: 60,
 
 	gravity			: false,
-	devOrientation		: true,
+	devOrientation		: false,
 	
 	spheres	: {
-		enable		: false,
+		enable		: true,
 		quantity	: 100,
 		restitution	: 1.0
 	},
@@ -34,7 +34,7 @@ var pageOptions		= {
 	},
 
 	nBodyGravity	: {
-		enable		: false,
+		enable		: true,
 		strength	: 5,
 	},
 	
@@ -79,8 +79,8 @@ function buildGui(opts, callback)
 	gui.add(opts, 'devOrientation')		.name('device orientation').onChange(change);
 
 	gui.add(opts.spheres, 'enable')		.name('Sphere Enable').onChange(change);
-	gui.add(opts.spheres, 'quantity')	.name('Number of Sphere').min(0).max(200).onChange(change);
-	gui.add(opts.spheres, 'restitution')	.name('Sphere Restitution').min(0).max(3).onChange(change);
+	gui.add(opts.spheres, 'quantity')	.name('Number of Sphere').min(0).max(500).onFinishChange(change);
+	gui.add(opts.spheres, 'restitution')	.name('Sphere Restitution').min(0).max(3).onFinishChange(change);
 
 	gui.add(opts.player, 'enable')		.name('Player Enable').onChange(change);
 	gui.add(opts.player, 'restitution')	.name('Player Restitution').min(0).max(3).onFinishChange(change);
@@ -93,7 +93,7 @@ function buildGui(opts, callback)
 function init() {
 	// create the camera
 	camera = new THREE.Camera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
-	camera.position.z	= -5500;
+	camera.position.z	= -7000;
 	// create the Scene
 	scene = new THREE.Scene();
 
@@ -104,6 +104,7 @@ function init() {
 	scene.addChild( light );
 				
 	// build the GUI
+	// TODO refactor this function... it is dirty
 	var handleOption	= function(){
 		//console.log("pageOptions", JSON.stringify(pageOptions, null, '\t'))
 
@@ -150,6 +151,20 @@ function init() {
 			if( spheres )	spheres.destroy();
 			spheres	= null;
 		}
+
+		if( pageOptions.innerCube.enable ){
+			if( !innerCube )	innerCube	= new Playground.InnerCube();
+		}else{
+			if( innerCube )	innerCube.destroy();
+			innerCube	= null;
+		}
+
+		if( pageOptions.outterCube.enable ){
+			if( !outterCube )	outterCube	= new Playground.OutterCube();
+		}else{
+			if( outterCube )	outterCube.destroy();
+			outterCube	= null;
+		}
 	};
 	buildGui(pageOptions, handleOption);
 
@@ -159,19 +174,7 @@ function init() {
 	});
 	microphysics.start();
 
-
-	// gravity
-	if( pageOptions.gravity )		gravity	= new Playground.Gravity();
-
-	// outter cube
-	if( pageOptions.outterCube.enable )	outterCube	= new Playground.OutterCube();
-	// inner cube
-	if( pageOptions.innerCube.enable )	innerCube	= new Playground.InnerCube();
-
-	if( pageOptions.spheres.enable )	spheres		= new Playground.Spheres();	
-	if( pageOptions.player.enable )		player		= new Playground.Player();
-	if( pageOptions.devOrientation )	deviceOrientation= new Playground.DevOrientation();
-	if( pageOptions.nBodyGravity.enable )	nBodyGravity	= new Playground.nBodyGravity();
+	handleOption();
 
 	// create the container element
 	container = document.createElement( 'div' );

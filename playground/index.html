@@ -4,13 +4,32 @@
 		<meta charset="utf-8">
 		<style type="text/css">
 			body {
-				background-color: #f0f0f0;
+				background-color: #202020;
 				margin		: 0px;
 				overflow	: hidden;
+			}
+			#info {
+				color		: #F0F0F0;
+				text-align	: center;
+				z-index		: 1;
+				position	: absolute;
+				top		: 0px;
+				width		: 100%;
+				padding		: 5px;
+				font-weight	: bolder;
+			} 
+			a {
+				color		: #8080F0;
 			}
 		</style>
 	</head>
 	<body>
+		<div id="info">
+			<a href="http://learningthreejs.com/blog/2011/10/03/lets-make-a-3d-game-microphysics-js/" target="_blank">LearningThree.js</a> - Let's Make a 3D Game: microphysics.js
+			<br/>
+			- The PlayGround -
+		</div>
+
 		<!-- include javascript files -->
 		<script type="text/javascript" src="https://raw.github.com/mrdoob/three.js/r44/build/Three.js"></script>
 		<script type="text/javascript" src="https://raw.github.com/mrdoob/three.js/r44/examples/js/RequestAnimationFrame.js"></script>

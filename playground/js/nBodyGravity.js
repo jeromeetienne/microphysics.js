@@ -2,21 +2,18 @@ var Playground	= Playground	|| {};
 
 Playground.nBodyGravity	= function()
 {
-	var collection	= [];
-	sphereMeshes.forEach(function(mesh){
-		var body	= microphysics.body(mesh);
-		collection.push(body);
-	})
 	// TODO inerit from vphy base accelerator, this no type and no remove
 	this._accelerator	= {
 		type: vphy.types.ACCELERATOR,
 		perform: function(){
-			var len		= collection.length;
+			if( !spheres )	return;
+			var meshes	= spheres.meshes();
 			var strength	= pageOptions.nBodyGravity.strength;
+			var len		= meshes.length;
 			for(var i=0; i<len-1; i++){
-				var b1 = collection[i];
+				var b1 = microphysics.body(meshes[i]);
 				for(var j=i+1; j<len; j++){
-					var b2 = collection[j];
+					var b2 = microphysics.body(meshes[j]);
 					var x = b1.x - b2.x;
 					var y = b1.y - b2.y;
 					var z = b1.z - b2.z;
