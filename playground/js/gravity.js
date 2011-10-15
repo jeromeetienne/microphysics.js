@@ -12,5 +12,6 @@ Playground.Gravity	= function()
 
 Playground.Gravity.prototype.destroy	= function()
 {
-	microphysics.world().remove(this._accelerator);	
+	microphysics.world().remove(this._accelerator);
+	this._accelerator	= null;
 }

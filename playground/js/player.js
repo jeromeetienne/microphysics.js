@@ -22,6 +22,7 @@ Playground.Player	= function()
 	
 	// keyboard control
 	this._keyboard		= new THREEx.KeyboardState();
+	// TODO inerit from vphy base accelerator, this no type and no remove
 	this._accelerator	= {
 		type: vphy.types.ACCELERATOR,
 		perform: function(){

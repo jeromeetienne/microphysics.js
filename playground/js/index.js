@@ -11,6 +11,7 @@ var camera, scene, renderer, stats;
 var microphysics;
 var gravity;
 var deviceOrientation;
+var nBodyGravity;
 var player;
 
 
@@ -22,7 +23,7 @@ var pageOptions		= {
 	
 	sphere	: {
 		enable		: true,
-		quantity	: 0,
+		quantity	: 100,
 		restitution	: 1.0
 	},
 	
@@ -133,8 +134,12 @@ function init() {
 			player	= null;
 		}
 
-		if( pageOptions.nBodyGravity.enable)	nBodyGravityInit();
-		else					nBodyGravityDestroy();
+		if( pageOptions.nBodyGravity.enable ){
+			if( !nBodyGravity )	nBodyGravity	= new Playground.nBodyGravity();
+		}else{
+			if( nBodyGravity )	nBodyGravity.destroy();
+			nBodyGravity	= null;
+		}
 	};
 	buildGui(pageOptions, handleOption);
 
@@ -146,13 +151,13 @@ function init() {
 
 
 	// gravity
-	if( pageOptions.gravity )	gravity	= new Playground.Gravity();
+	if( pageOptions.gravity )		gravity	= new Playground.Gravity();
 
 	// outter cube
 	if( pageOptions.outterCubeEnable )	outterCubeInit();
 
 	// inner cube
-	if( pageOptions.innerCubeEnable )	innerCubeInit();
+	if( pageOptions.innerCube.enable )	innerCube	= new Playground.InnerCube();
 
 
 	if( pageOptions.sphere.enable ){
@@ -162,13 +167,11 @@ function init() {
 		});
 	}
 	
-	if( pageOptions.player.enable )	player	= new Playground.Player();
+	if( pageOptions.player.enable )		player		= new Playground.Player();
 
 	if( pageOptions.devOrientation )	deviceOrientation	= new Playground.DevOrientation();
 
-	if( pageOptions.nBodyGravity.enable){
-		nBodyGravityInit(pageOptions.nBodyGravity.strength);
-	}
+	if( pageOptions.nBodyGravity.enable )	nBodyGravity	= new Playground.nBodyGravity();
 
 	// create the container element
 	container = document.createElement( 'div' );

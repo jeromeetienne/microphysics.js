@@ -1,20 +1,16 @@
-var nBodyGravityAcc;
+var Playground	= Playground	|| {};
 
-function nBodyGravityInit(){
-
-	if( nBodyGravityAcc )	return;
-
+Playground.nBodyGravity	= function()
+{
 	var collection	= [];
 	sphereMeshes.forEach(function(mesh){
 		var body	= microphysics.body(mesh);
 		collection.push(body);
 	})
-
-	nBodyGravityAcc	= {
-		type	: vphy.types.ACCELERATOR,
-		perform	: function(bodies, deltaTime){
-			if( !nBodyGravityAcc )	return;
-
+	// TODO inerit from vphy base accelerator, this no type and no remove
+	this._accelerator	= {
+		type: vphy.types.ACCELERATOR,
+		perform: function(){
 			var len		= collection.length;
 			var strength	= pageOptions.nBodyGravity.strength;
 			for(var i=0; i<len-1; i++){
@@ -32,18 +28,16 @@ function nBodyGravityInit(){
 					b2.accelerate(xn*f2, yn*f2, zn*f2);
 				}
 			}
-		},
+		}.bind(this),
 		remove	: function(){
 			this.to_remove	= true;
 		}
 	};
-	microphysics.world().add(nBodyGravityAcc);
+	microphysics.world().add(this._accelerator);
 }
 
-function nBodyGravityDestroy(){
-
-	if( !nBodyGravityAcc )	return;
-
-	microphysics.world().remove(nBodyGravityAcc)
-	nBodyGravityAcc	= null;;
+Playground.nBodyGravity.prototype.destroy	= function()
+{
+	microphysics.world().remove(this._accelerator);
+	this._accelerator	= null;
 }
