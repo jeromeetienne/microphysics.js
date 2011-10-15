@@ -137,7 +137,7 @@
                 z: 0,
                 density: 1,
             }, args);
-console.log("resitution", params.restitution);
+
             this.id = body_ids++;
             this.events = new Events(this);
 
@@ -246,6 +246,7 @@ console.log("resitution", params.restitution);
     });
 
     vphy = {
+        // TODO export Class it help create custom accelerator
         types: {
             AABB            : AABB,
             SPHERE          : SPHERE,

@@ -7,7 +7,7 @@ Playground.InnerCube	= function()
 		y	: 4*200,
 		z	: 4*200
 	};
-	var restitution	= pageOptions.innerCubeRestitution;
+	var restitution	= pageOptions.innerCube.restitution;
 	
 	var geometry	= new THREE.CubeGeometry(size.x, size.y, size.z);
 	var material	= [

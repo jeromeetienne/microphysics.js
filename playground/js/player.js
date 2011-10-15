@@ -30,13 +30,15 @@ Playground.Player	= function()
 			var acc		= 20*250;
 			var body	= microphysics.body(mesh);
 			var keyboard	= this._keyboard;
-			var shift	= keyboard.pressed('shift');
 			if( keyboard.pressed('right') )		body.accelerate(-acc,0,0);
-			if( keyboard.pressed('left') )		body.accelerate(acc,0,0);
-			if( keyboard.pressed('up') && !shift )	body.accelerate(0,0,acc);
-			if( keyboard.pressed('down') && !shift)	body.accelerate(0,0,-acc);
-			if( keyboard.pressed('up') && shift )	body.accelerate(0, +30*250, 0);
-			if( keyboard.pressed('down') && shift )	body.accelerate(0, -30*250, 0);
+			if( keyboard.pressed('left') )		body.accelerate(+acc,0,0);
+			if( keyboard.pressed('shift') ){
+				if( keyboard.pressed('up') )	body.accelerate(0, +acc, 0);
+				if( keyboard.pressed('down'))	body.accelerate(0, -acc, 0);				
+			}else{
+				if( keyboard.pressed('up') )	body.accelerate(0,0,+acc);
+				if( keyboard.pressed('down') )	body.accelerate(0,0,-acc);
+			}
 		}.bind(this),
 		remove	: function(){
 			this.to_remove	= true;

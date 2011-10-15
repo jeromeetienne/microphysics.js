@@ -13,7 +13,8 @@ var gravity;
 var deviceOrientation;
 var nBodyGravity;
 var player;
-
+var innerCube, outterCube;
+var spheres;
 
 var pageOptions		= {
 	physicsSteps		: 60,
@@ -21,8 +22,8 @@ var pageOptions		= {
 	gravity			: false,
 	devOrientation		: true,
 	
-	sphere	: {
-		enable		: true,
+	spheres	: {
+		enable		: false,
 		quantity	: 100,
 		restitution	: 1.0
 	},
@@ -41,12 +42,13 @@ var pageOptions		= {
 		enable		: false,
 		restitution	: 1.0,
 	},
-	
-	outterCubeEnable	: true,
-	outterCubeWidth		: 10000,
-	outterCubeHeight	: 5000,
-	outterCubeDepth		: 5000,
-	outterCubeRestitution	: 0.6,
+	outterCube	: {
+		enable		: true,
+		width		: 10000,
+		height		: 5000,
+		depth		: 5000,
+		restitution	: 0.6
+	},
 };
 
 // ## bootstrap functions
@@ -76,9 +78,9 @@ function buildGui(opts, callback)
 	gui.add(opts, 'gravity')		.onChange(change);
 	gui.add(opts, 'devOrientation')		.name('device orientation').onChange(change);
 
-	gui.add(opts.sphere, 'enable')		.name('Sphere Enable').onChange(change);
-	gui.add(opts.sphere, 'quantity')	.name('Number of Sphere').min(0).max(200).onChange(change);
-	gui.add(opts.sphere, 'restitution')	.name('Sphere Restitution').min(0).max(3).onChange(change);
+	gui.add(opts.spheres, 'enable')		.name('Sphere Enable').onChange(change);
+	gui.add(opts.spheres, 'quantity')	.name('Number of Sphere').min(0).max(200).onChange(change);
+	gui.add(opts.spheres, 'restitution')	.name('Sphere Restitution').min(0).max(3).onChange(change);
 
 	gui.add(opts.player, 'enable')		.name('Player Enable').onChange(change);
 	gui.add(opts.player, 'restitution')	.name('Player Restitution').min(0).max(3).onFinishChange(change);
@@ -140,6 +142,14 @@ function init() {
 			if( nBodyGravity )	nBodyGravity.destroy();
 			nBodyGravity	= null;
 		}
+
+		if( pageOptions.spheres.enable ){
+			if( !spheres )	spheres	= new Playground.Spheres();
+			spheres.config();
+		}else{
+			if( spheres )	spheres.destroy();
+			spheres	= null;
+		}
 	};
 	buildGui(pageOptions, handleOption);
 
@@ -154,23 +164,13 @@ function init() {
 	if( pageOptions.gravity )		gravity	= new Playground.Gravity();
 
 	// outter cube
-	if( pageOptions.outterCubeEnable )	outterCubeInit();
-
+	if( pageOptions.outterCube.enable )	outterCube	= new Playground.OutterCube();
 	// inner cube
 	if( pageOptions.innerCube.enable )	innerCube	= new Playground.InnerCube();
 
-
-	if( pageOptions.sphere.enable ){
-		spheresInit({
-			quantity	: pageOptions.sphere.quantity,
-			restitution	: pageOptions.sphere.restitution
-		});
-	}
-	
+	if( pageOptions.spheres.enable )	spheres		= new Playground.Spheres();	
 	if( pageOptions.player.enable )		player		= new Playground.Player();
-
-	if( pageOptions.devOrientation )	deviceOrientation	= new Playground.DevOrientation();
-
+	if( pageOptions.devOrientation )	deviceOrientation= new Playground.DevOrientation();
 	if( pageOptions.nBodyGravity.enable )	nBodyGravity	= new Playground.nBodyGravity();
 
 	// create the container element
