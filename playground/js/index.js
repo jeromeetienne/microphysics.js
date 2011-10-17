@@ -19,17 +19,17 @@ var spheres;
 var pageOptions		= {
 	physicsSteps		: 60,
 
-	gravity			: false,
-	devOrientation		: true,
+	gravity			: true,
+	devOrientation		: false,
 	
 	spheres	: {
 		enable		: true,
-		quantity	: 400,
+		quantity	: 120,
 		restitution	: 1.0
 	},
 	
 	player	: {
-		enable		: false,
+		enable		: true,
 		restitution	: 1.0
 	},
 
@@ -99,7 +99,7 @@ function init() {
 
 	// lights
 	scene.addChild( new THREE.AmbientLight( 0x404040 ) );
-	var light = new THREE.DirectionalLight( 0xffffff, 1.2 );
+	var light = new THREE.DirectionalLight( 0xffffff, 1 );
 	light.position.set(1,1,0).normalize();
 	scene.addChild( light );
 				

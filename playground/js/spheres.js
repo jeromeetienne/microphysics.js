@@ -5,6 +5,7 @@ var sphereMeshes	= [];
 Playground.Spheres	= function()
 {
 	this._material	= new THREE.MeshNormalMaterial();
+	//this._material	= new THREE.MeshLambertMaterial();
 	this._meshes	= [];
 	this.config();
 }
