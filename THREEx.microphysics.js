@@ -36,13 +36,36 @@
 //     microphysics.unbindMesh(mesh);
 // ```
 //
+// At the time of this writing, microphysics.js support only moving sphere and static
+// boxes, so geometry may only be ``THREE.SphereGeometry``` or ```THREE.CubeGeometry```.
+// If your mesh got another geometry, use ```opts.geometry``` to say you want the mesh
+// to be handled.
+//
+// ```
+//     microphysics.bindMesh(mesh, {
+//          geometry	: new THREE.CubeGeometry(200,200,200);
+//     });
+// ```
+//
+// It is possible to overwrite ```Mesh.position``` with ```opts.position```, or
+// to send options directly to microphysics.js with ```opts.physics```.
+//
+// ```
+//     microphysics.bindMesh(mesh, {
+//         // to overwrite the Mesh.position
+//         position	: { x : 1, y : 1, z : 2 },
+//         // to pass options directly to microphysics.js
+//	   physics		: { restitution	: 0.98 }
+//    });
+//```
+//
 // # Updating the physics
 //
 // In your render loop, just add this line. It will first update the physics world and
 // then move accordingly any ```THREE.Mesh``` you bound.
 //
 // ```
-//     microphysics.update(scene);	
+//     microphysics.update();	
 // ```
 //
 // # Needs a Direct Access ?
@@ -63,10 +86,10 @@ var THREEx	= THREEx 		|| {};
 */
 THREEx.Microphysics	= function(opts)
 {
-	opts		= opts	|| {};
-	this._timeStep	= opts.timeStep	? opts.timeStep : 1/60;
-	this._world	= new vphy.World();
-	this._meshes	= [];
+	opts			= opts	|| {};
+	this._timeStep		= opts.timeStep	? opts.timeStep : 1/60;
+	this._world		= new vphy.World();
+	this._boundMeshes	= [];
 	return this;
 }
 
@@ -89,25 +112,21 @@ THREEx.Microphysics.prototype.body	= function(mesh)
 }
 
 // update the physics for all object bound to a scene
-THREEx.Microphysics.prototype.update	= function(scene)
+THREEx.Microphysics.prototype.update	= function()
 {
-	console.assert(scene instanceof THREE.Scene);
-	
 	// the actualTime is only for old version of the library
 	var actualTime	= this._world.step(this._timeStep, Date.now()/1000);
 	
-	// go thru each mesh and find the one with the physics
+	// go thru each bound mesh
 	// - set there position accordingly
-	scene.children.forEach(function(mesh){
-		if( typeof mesh === THREE.Mesh )	return;
-		if( ! mesh._vphyBody )			return;
-
+	for(var i = 0; i < this._boundMeshes.length; i++){
+		var mesh	= this._boundMeshes[i];
 		var body	= mesh._vphyBody;
 		var bodyPosition= body.getPosition(actualTime);
 		mesh.position.x	= bodyPosition[0];
 		mesh.position.y	= bodyPosition[1];
 		mesh.position.z	= bodyPosition[2];
-	})
+	}
 	return this;
 }
 
@@ -136,6 +155,9 @@ THREEx.Microphysics.prototype.bindMesh	= function(mesh, opts)
 
 	// add this body to the world
 	this._world.add(mesh._vphyBody);
+	// add this mesh in this._boundMeshes
+	console.assert( this._boundMeshes.indexOf(mesh) === -1 );
+	this._boundMeshes.push(mesh);
 	// return this for chained API
 	return this;
 }
@@ -146,7 +168,12 @@ THREEx.Microphysics.prototype.bindMesh	= function(mesh, opts)
 THREEx.Microphysics.prototype.unbindMesh	= function(mesh)
 {
 	this._world.remove(mesh._vphyBody);
+	
+	console.assert( this._boundMeshes.indexOf(mesh) !== -1 );
+	this._boundMeshes.splice( this._boundMeshes.indexOf(mesh), 1);
+
 	delete mesh._vphyBody;
+
 	return this;
 }
 
