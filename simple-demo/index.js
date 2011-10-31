@@ -49,7 +49,9 @@ function init() {
 		mesh.position.y	= -400+100;
 		scene.addChild(mesh);
 		microphysics.bindMesh(mesh, {
-			restitution	: 2.0
+			physics	: {
+				restitution	: 2.0
+			}
 		});
 	}
 
@@ -63,15 +65,17 @@ function init() {
 
 	for( var i = 0; i < 2; i++ ){
 		var geometry	= new THREE.SphereGeometry(70, 10, 5);
-		var geometry	= new THREE.CubeGeometry(140,140,140);
+		//var geometry	= new THREE.CubeGeometry(140,140,140);
 		var mesh	= new THREE.Mesh(geometry, new THREE.MeshNormalMaterial());
 		mesh.position.x	= 	(2*Math.random()-1) * 30;
 		mesh.position.y	= 150 + (2*Math.random()-1) * 75;
 		mesh.position.z	= 	(2*Math.random()-1) * 30;
 
 		microphysics.bindMesh(mesh, {
-			restitution	: 1.0,
-			geometry	: new THREE.SphereGeometry(70, 10, 5)
+			geometry	: new THREE.SphereGeometry(70, 10, 5),
+			physics		: {
+				restitution	: 0.6
+			}
 		});
 
 		scene.addChild(mesh);		
@@ -86,7 +90,9 @@ function init() {
 		mesh.position.y	= 0;
 		mesh.position.z	= 0;
 		microphysics.bindMesh(mesh, {
-			restitution	: 1.0
+			physics	: {
+				restitution	: 0.6
+			}
 		});
 		scene.addChild(mesh);
 		player	= mesh;
@@ -171,49 +177,51 @@ function addOutterCube(){
 	var width	= 1400;
 	var height	= 800;
 	var depth	= 800;
-	var restitution	= 1.0;
+	var vphyOpts	= {
+		physics	: {
+			restitution	: 0.9
+		}
+	};
 	
 	var geometry	= new THREE.CubeGeometry(width,thickness,depth, 10, 10, 10, [], true);
 	var material	= [new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } ),new THREE.MeshNormalMaterial()];
 	var mesh	= new THREE.Mesh(geometry, material);
 	mesh.position.y	= -height/2;
 	scene.addChild(mesh);
-	microphysics.bindMesh(mesh, {
-		restitution	: restitution
-	})
+	microphysics.bindMesh(mesh, vphyOpts);
 
 	var geometry	= new THREE.CubeGeometry(width,thickness,depth, 10, 10, 10, [], true);
 	var material	= [new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } ),new THREE.MeshNormalMaterial()];
 	var mesh	= new THREE.Mesh(geometry, material);
 	mesh.position.y	= +height/2;
 	scene.addChild(mesh);
-	microphysics.bindMesh(mesh)
+	microphysics.bindMesh(mesh, vphyOpts);
 
 	var geometry	= new THREE.CubeGeometry(thickness, height, depth, 10, 10, 10, [], true);
 	var material	= [new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } ),new THREE.MeshNormalMaterial()];
 	var mesh	= new THREE.Mesh(geometry, material);
 	mesh.position.x	= +width/2;
 	scene.addChild(mesh);
-	microphysics.bindMesh(mesh)
+	microphysics.bindMesh(mesh, vphyOpts)
 
 	var geometry	= new THREE.CubeGeometry(thickness,height,depth, 10, 10, 10, [], true);
 	var material	= [new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } ),new THREE.MeshNormalMaterial()];
 	var mesh	= new THREE.Mesh(geometry, material);
 	mesh.position.x	= -width/2;
 	scene.addChild(mesh);
-	microphysics.bindMesh(mesh)
+	microphysics.bindMesh(mesh, vphyOpts)
 
 	var geometry	= new THREE.CubeGeometry(width,height,thickness, 10, 10, 10, [], true);
 	var material	= [new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } ),new THREE.MeshNormalMaterial()];
 	var mesh	= new THREE.Mesh(geometry, material);
 	mesh.position.z	= +depth/2;
 	scene.addChild(mesh);
-	microphysics.bindMesh(mesh)
+	microphysics.bindMesh(mesh, vphyOpts)
 
 	var geometry	= new THREE.CubeGeometry(width, height, thickness, 10, 10, 10, [], true);
 	var material	= [new THREE.MeshBasicMaterial( { color: 0xffaa00, wireframe: true } )];
 	var mesh	= new THREE.Mesh(geometry, material);
 	mesh.position.z	= -depth/2;
 	scene.addChild(mesh);
-	microphysics.bindMesh(mesh)
+	microphysics.bindMesh(mesh, vphyOpts)
 }

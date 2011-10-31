@@ -129,10 +129,14 @@ THREEx.Microphysics.prototype.bindMesh	= function(mesh, opts)
 	opts		= opts	|| {};
 	var geometry	= opts.geometry	|| mesh.geometry;
 	if( geometry instanceof THREE.SphereGeometry ){
-		return this._bindSphere( mesh, opts );
+		this._bindSphere( mesh, opts );
 	}else if( geometry instanceof THREE.CubeGeometry ){
-		return this._bindCube( mesh, opts );
+		this._bindCube( mesh, opts );
 	}else	console.assert(false, "unhandled type of THREE.Geometry");
+
+	// add this body to the world
+	this._world.add(mesh._vphyBody);
+	// return this for chained API
 	return this;
 }
 
@@ -150,45 +154,52 @@ THREEx.Microphysics.prototype._bindCube	= function(mesh, opts)
 {
 	var geometry	= opts.geometry	|| mesh.geometry;
 	var position	= opts.position	|| mesh.position;
-	var restitution	= opts.restitution	? opts.restitution	: 0.6;
-
-
+	var physics	= opts.physics	|| {};
+	// sanity check -
 	console.assert( geometry instanceof THREE.CubeGeometry );
-	
+	// build vphyOpts base from geometry+position
 	geometry.computeBoundingBox();
-	mesh._vphyBody	= new vphy.AABB({
+	var vphyOpts	= {
 		width		: geometry.boundingBox.x[1] - geometry.boundingBox.x[0],
 		height		: geometry.boundingBox.y[1] - geometry.boundingBox.y[0],
 		depth		: geometry.boundingBox.z[1] - geometry.boundingBox.z[0],
 		x		: position.x,
 		y		: position.y,
-		z		: position.z,
-		restitution	: restitution
-	});
+		z		: position.z
+	};
+	// vphyOpts inherits from physics
+	for(var key in physics){
+		if( !physics.hasOwnProperty(key) )	continue;
+		vphyOpts[key]	= physics[key];
+	}
 	
-	this._world.add(mesh._vphyBody);
-	return this;
+	// build the microphysics body
+	mesh._vphyBody	= new vphy.AABB(vphyOpts);
 }
 
 THREEx.Microphysics.prototype._bindSphere	= function(mesh, opts)
 {
 	var geometry	= opts.geometry	|| mesh.geometry;
 	var position	= opts.position	|| mesh.position;
-	var restitution	= 'restitution' in opts	? opts.restitution	: 0.6;
-
+	var physics	= opts.physics	|| {};
+	// sanity check
 	console.assert( geometry instanceof THREE.SphereGeometry );
 
+	// build vphyOpts base from geometry+position
 	geometry.computeBoundingBox();
-	mesh._vphyBody	= new vphy.Sphere({
-		restitution	: restitution,
+	var vphyOpts	= {
 		radius		: (geometry.boundingBox.x[1] - geometry.boundingBox.x[0])/2,
 		x		: position.x,
 		y		: position.y,
-		z		: position.z
-	});
-	
-	this._world.add(mesh._vphyBody);
+		z		: position.z		
+	};
+	// vphyOpts inherits from physics
+	for(var key in physics){
+		if( !physics.hasOwnProperty(key) )	continue;
+		vphyOpts[key]	= physics[key];
+	}
 
-	return this;
+	// build the microphysics body
+	mesh._vphyBody	= new vphy.Sphere(vphyOpts);
 }
 
