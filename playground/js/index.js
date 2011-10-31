@@ -212,7 +212,7 @@ function render() {
 
 	if( player )		player.update();
 
-	microphysics.update(scene);	
+	microphysics.update();	
 
 	// actually display the scene in the Dom element
 	renderer.render( scene, camera );

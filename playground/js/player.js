@@ -13,7 +13,9 @@ Playground.Player	= function()
 
 	// microphysics.js
 	microphysics.bindMesh(mesh, {
-		restitution	: restitution
+		physics	: {
+			restitution	: restitution			
+		}
 	});
 	microphysics.body(mesh).events.on('contact', function(otherBody){
 		var material	= mesh.materials[0];

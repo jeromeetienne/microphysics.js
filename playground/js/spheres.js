@@ -61,7 +61,9 @@ radius	= 180;
 	this._meshes.push(mesh);
 
 	microphysics.bindMesh(mesh, {
-		restitution	: restitution
+		physics	: {
+			restitution	: restitution			
+		}
 	});
 	
 	// initial speed

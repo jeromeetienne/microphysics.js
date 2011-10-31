@@ -50,7 +50,7 @@ function init() {
 		scene.addChild(mesh);
 		microphysics.bindMesh(mesh, {
 			physics	: {
-				restitution	: 2.0
+				restitution	: 1.3
 			}
 		});
 	}
@@ -165,7 +165,7 @@ return;
 	gravity.direction.z	= position.z;
 }());
 	
-	microphysics.update(scene);	
+	microphysics.update();	
 
 	// actually display the scene in the Dom element
 	renderer.render( scene, camera );

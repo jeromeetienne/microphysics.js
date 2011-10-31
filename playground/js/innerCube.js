@@ -21,7 +21,9 @@ Playground.InnerCube	= function()
 	this._mesh	= mesh;
 
 	microphysics.bindMesh(mesh, {
-		restitution	: restitution
+		physics	: {
+			restitution	: restitution			
+		}
 	});
 }
 
