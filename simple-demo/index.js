@@ -62,13 +62,16 @@ function init() {
 	microphysics.world().add(gravity);
 
 	for( var i = 0; i < 2; i++ ){
-		var mesh	= new THREE.Mesh(new THREE.SphereGeometry(70, 10, 5), new THREE.MeshNormalMaterial());
+		var geometry	= new THREE.SphereGeometry(70, 10, 5);
+		var geometry	= new THREE.CubeGeometry(140,140,140);
+		var mesh	= new THREE.Mesh(geometry, new THREE.MeshNormalMaterial());
 		mesh.position.x	= 	(2*Math.random()-1) * 30;
 		mesh.position.y	= 150 + (2*Math.random()-1) * 75;
 		mesh.position.z	= 	(2*Math.random()-1) * 30;
 
 		microphysics.bindMesh(mesh, {
-			restitution	: 1.0
+			restitution	: 1.0,
+			geometry	: new THREE.SphereGeometry(70, 10, 5)
 		});
 
 		scene.addChild(mesh);		

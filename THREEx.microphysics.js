@@ -47,7 +47,8 @@
 //
 // # Needs a Direct Access ?
 //
-// If you need to have direct access to microphysics.js, uses ```mesh._vphyBody``` to get the ```vphy.Body```
+// If you need to have direct access to microphysics.js,
+// use ```microphysics.body(mesh)``` to get the ```vphy.Body``` bound to ```mesh```.
 // bound to ```mesh```. To access ```vphy.World```, just use ```microphysics.word()```.
 //
 // # Code
@@ -65,6 +66,7 @@ THREEx.Microphysics	= function(opts)
 	opts		= opts	|| {};
 	this._timeStep	= opts.timeStep	? opts.timeStep : 1/60;
 	this._world	= new vphy.World();
+	this._meshes	= [];
 	return this;
 }
 
@@ -115,6 +117,7 @@ THREEx.Microphysics.prototype.update	= function(scene)
 */
 THREEx.Microphysics.prototype.addMesh	= function(mesh, opts)
 {
+	console.log("addMesh is obsolete remove it")
 	return this.bindMesh(mesh, opts);
 }
 
@@ -123,9 +126,11 @@ THREEx.Microphysics.prototype.addMesh	= function(mesh, opts)
 */
 THREEx.Microphysics.prototype.bindMesh	= function(mesh, opts)
 {
-	if( mesh.geometry instanceof THREE.SphereGeometry ){
+	opts		= opts	|| {};
+	var geometry	= opts.geometry	|| mesh.geometry;
+	if( geometry instanceof THREE.SphereGeometry ){
 		return this._bindSphere( mesh, opts );
-	}else if( mesh.geometry instanceof THREE.CubeGeometry ){
+	}else if( geometry instanceof THREE.CubeGeometry ){
 		return this._bindCube( mesh, opts );
 	}else	console.assert(false, "unhandled type of THREE.Geometry");
 	return this;
@@ -143,18 +148,21 @@ THREEx.Microphysics.prototype.unbindMesh	= function(mesh)
 
 THREEx.Microphysics.prototype._bindCube	= function(mesh, opts)
 {
-	console.assert( mesh.geometry instanceof THREE.CubeGeometry );
-	opts		= opts	|| {};
+	var geometry	= opts.geometry	|| mesh.geometry;
+	var position	= opts.position	|| mesh.position;
 	var restitution	= opts.restitution	? opts.restitution	: 0.6;
 
-	mesh.geometry.computeBoundingBox();
+
+	console.assert( geometry instanceof THREE.CubeGeometry );
+	
+	geometry.computeBoundingBox();
 	mesh._vphyBody	= new vphy.AABB({
-		width		: mesh.geometry.boundingBox.x[1] - mesh.geometry.boundingBox.x[0],
-		height		: mesh.geometry.boundingBox.y[1] - mesh.geometry.boundingBox.y[0],
-		depth		: mesh.geometry.boundingBox.z[1] - mesh.geometry.boundingBox.z[0],
-		x		: mesh.position.x,
-		y		: mesh.position.y,
-		z		: mesh.position.z,
+		width		: geometry.boundingBox.x[1] - geometry.boundingBox.x[0],
+		height		: geometry.boundingBox.y[1] - geometry.boundingBox.y[0],
+		depth		: geometry.boundingBox.z[1] - geometry.boundingBox.z[0],
+		x		: position.x,
+		y		: position.y,
+		z		: position.z,
 		restitution	: restitution
 	});
 	
@@ -164,17 +172,19 @@ THREEx.Microphysics.prototype._bindCube	= function(mesh, opts)
 
 THREEx.Microphysics.prototype._bindSphere	= function(mesh, opts)
 {
-	console.assert( mesh.geometry instanceof THREE.SphereGeometry );
-
-	opts		= opts	|| {};
+	var geometry	= opts.geometry	|| mesh.geometry;
+	var position	= opts.position	|| mesh.position;
 	var restitution	= 'restitution' in opts	? opts.restitution	: 0.6;
-	mesh.geometry.computeBoundingBox();
+
+	console.assert( geometry instanceof THREE.SphereGeometry );
+
+	geometry.computeBoundingBox();
 	mesh._vphyBody	= new vphy.Sphere({
 		restitution	: restitution,
-		radius		: (mesh.geometry.boundingBox.x[1] - mesh.geometry.boundingBox.x[0])/2,
-		x		: mesh.position.x,
-		y		: mesh.position.y,
-		z		: mesh.position.z
+		radius		: (geometry.boundingBox.x[1] - geometry.boundingBox.x[0])/2,
+		x		: position.x,
+		y		: position.y,
+		z		: position.z
 	});
 	
 	this._world.add(mesh._vphyBody);
