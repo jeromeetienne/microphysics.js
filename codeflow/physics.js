@@ -57,7 +57,6 @@
 
             var l = listeners.length;
             if(!l) return;
-
             var obj = this.obj;
             for(var i=0, listener; listener=listeners[i++];){
                 listener.apply(obj, arguments);
@@ -189,6 +188,13 @@
                 this.z - this.pz,
             ];
         },
+        setPosition: function(x, y, z){ // __doc__ added this one
+            var velocity    = this.getVelocity();
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.setVelocity(velocity[0], velocity[1], velocity[2]);
+        },
         getPosition: function(){
             var u = this.world.u;
             return [
@@ -196,6 +202,32 @@
                 this.py + (this.y - this.py)*u,
                 this.pz + (this.z - this.pz)*u,
             ]
+        },
+        separatingVelocity: function(other){
+            var b1 = this, b2 = other;
+                
+            var x = b1.x - b2.x;
+            var y = b1.y - b2.y;
+            var z = b1.z - b2.z;
+            var l = sqrt(x*x + y*y + z*z);
+            var xn = x/l;
+            var yn = y/l; 
+            var zn = z/l;
+            
+            var v1  = b1.getVelocity();
+            var v2  = b2.getVelocity();
+
+            var vrx = v1[0] - v2[0];
+            var vry = v1[1] - v2[1];
+            var vrz = v1[2] - v2[2];
+
+            var vdotn = vrx*xn + vry*yn + vrz*zn;
+            var xs = vrx*vdotn;
+            var ys = vry*vdotn;
+            var zs = vrz*vdotn;
+            var speed = sqrt(xs*xs + ys*ys + zs*zs);
+
+            return speed;
         },
         collide: function(other, restitute){
             switch(other.type){
@@ -246,12 +278,16 @@
     });
 
     vphy = {
-        // TODO export Class it help create custom accelerator
         types: {
             AABB            : AABB,
             SPHERE          : SPHERE,
             ACCELERATOR     : ACCELERATOR,
         },
+        // expose extend+Class in namespace
+        extend      : extend,   // __doc__ added this
+        Class       : Class,
+        Accelerator : Accelerator,
+        
         World: Class({
             __init__: function(){
                 this.u = 0;
