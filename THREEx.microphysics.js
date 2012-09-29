@@ -187,9 +187,9 @@ THREEx.Microphysics.prototype._bindCube	= function(mesh, opts)
 	// build vphyOpts base from geometry+position
 	geometry.computeBoundingBox();
 	var vphyOpts	= {
-		width		: geometry.boundingBox.x[1] - geometry.boundingBox.x[0],
-		height		: geometry.boundingBox.y[1] - geometry.boundingBox.y[0],
-		depth		: geometry.boundingBox.z[1] - geometry.boundingBox.z[0],
+		width		: geometry.boundingBox.max.x - geometry.boundingBox.min.x,
+		height		: geometry.boundingBox.max.y - geometry.boundingBox.min.y,
+		depth		: geometry.boundingBox.max.z - geometry.boundingBox.min.z,
 		x		: position.x,
 		y		: position.y,
 		z		: position.z
@@ -215,7 +215,7 @@ THREEx.Microphysics.prototype._bindSphere	= function(mesh, opts)
 	// build vphyOpts base from geometry+position
 	geometry.computeBoundingBox();
 	var vphyOpts	= {
-		radius		: (geometry.boundingBox.x[1] - geometry.boundingBox.x[0])/2,
+		radius		: (geometry.boundingBox.max.x - geometry.boundingBox.min.x)/2,
 		x		: position.x,
 		y		: position.y,
 		z		: position.z		
